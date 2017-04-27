@@ -54,26 +54,27 @@ void setup() {
 void loop() {
   
   int position = qtra.readLine(sensorValues);
-  int M1, M2;
-  float KP = 0.1; //floating-point proportional constant
-  float KD = 5;   //floating-point derivative constant
-  int error = position - 3000;
+  int M1 = 100;
+  int M2 = 100;
+  float KP = 0.001; //floating-point proportional constant
+  float KD = 3;   //floating-point derivative constant
+  int error = position - 2500;
 
-  int  =  error + KD * (error - lastError);
+  int motorSpeed = KP * error + KD * (error - lastError);
   lastError = error;
 
-  int m1Speed = (M1 + motorSpeed)*0.1275;
-  int m2Speed = (M2 - motorSpeed)*0.1275;
+  int m1Speed = M1 + motorSpeed;
+  int m2Speed = M2 - motorSpeed;
 
   if (m1Speed < 0)
     m1Speed = 0;
   if (m2Speed < 0)
     m2Speed = 0;
 
-  if (m1Speed > 255)
-    m1Speed = 255;
-  if (m2Speed > 255)
-    m2Speed = 255;
+  if (m1Speed > 180)
+    m1Speed = 180;
+  if (m2Speed > 180)
+    m2Speed = 180;
 
   motorA(m1Speed);
   motorB(m2Speed);
