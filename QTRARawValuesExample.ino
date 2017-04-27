@@ -59,11 +59,11 @@ void loop() {
   float KD = 5;   //floating-point derivative constant
   int error = position - 3000;
 
-  int motorSpeed =  error + KD * (error - lastError);
+  int  =  error + KD * (error - lastError);
   lastError = error;
 
-  int m1Speed = M1 + motorSpeed;
-  int m2Speed = M2 - motorSpeed;
+  int m1Speed = (M1 + motorSpeed)*0.1275;
+  int m2Speed = (M2 - motorSpeed)*0.1275;
 
   if (m1Speed < 0)
     m1Speed = 0;
