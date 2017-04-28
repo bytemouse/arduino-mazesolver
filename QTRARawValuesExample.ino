@@ -1,6 +1,7 @@
 #include <QTRSensors.h>
 
 int lastError = 0;
+int loopIndex;
 
 #define NUM_SENSORS             6  // number of sensors used
 #define NUM_SAMPLES_PER_SENSOR  4  // average 4 analog samples per sensor reading
@@ -12,7 +13,6 @@ QTRSensorsAnalog qtra((unsigned char[]) {
 },
 NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
 unsigned int sensorValues[NUM_SENSORS];
-
 
 void setup() {
   //Setup Channel A
@@ -52,43 +52,41 @@ void setup() {
 
 
 void loop() {
-  
+  loopIndex++;
+
   int position = qtra.readLine(sensorValues);
-  int M1 = 100;
-  int M2 = 100;
-  float KP = 0.001; //floating-point proportional constant
-  float KD = 3;   //floating-point derivative constant
-  int error = position - 2500;
+  int M1 = 200;
+  int M2 = 200;
+  float KP = 0.1; //floating-point proportional constant
+  float KD = 1;   //floating-point derivative constant
+  int propotionalToMid = position - 2500;
 
-  int motorSpeed = KP * error + KD * (error - lastError);
-  lastError = error;
+  int motorSpeed = KP * propotionalToMid + KD * (propotionalToMid - lastError);
+  lastError = propotionalToMid;
 
-  int m1Speed = M1 + motorSpeed;
-  int m2Speed = M2 - motorSpeed;
+  int m2Speed = M2 + motorSpeed;
+  int m1Speed = M1 - motorSpeed;
 
-  if (m1Speed < 0)
-    m1Speed = 0;
-  if (m2Speed < 0)
-    m2Speed = 0;
+  if (m1Speed < 0) m1Speed = 0;
+  if (m2Speed < 0) m2Speed = 0;
 
-  if (m1Speed > 180)
-    m1Speed = 180;
-  if (m2Speed > 180)
-    m2Speed = 180;
+  if (m1Speed > 180) m1Speed = 180;
+  if (m2Speed > 180) m2Speed = 180;
 
   motorA(m1Speed);
   motorB(m2Speed);
 
-   Serial.print(motorSpeed);
-   Serial.print('\t');
-    Serial.print(m1Speed);
-    Serial.print('\t');
-    Serial.print(m2Speed);
-    Serial.print('\t');
-    Serial.println();
-    delay(500);
-    
-    
+  sensorOutput();
+
+  //   Serial.print(motorSpeed);
+  //   Serial.print('\t');
+  //    Serial.print(m1Speed);
+  //    Serial.print('\t');
+  //    Serial.print(m2Speed);
+  //    Serial.print('\t');
+  //    Serial.println();
+
+
 }
 
 void motorA(int speed) {
@@ -98,7 +96,7 @@ void motorA(int speed) {
 }
 
 void motorB(int speed) {
-  //Motor B forward 
+  //Motor B forward
   digitalWrite(13, HIGH); //Establishes forward direction of Channel B
   analogWrite(11, speed);   //Spins the motor on Channel B
 
@@ -106,21 +104,22 @@ void motorB(int speed) {
 
 void sensorOutput()
 {
-  // read calibrated sensor values and obtain a measure of the line position from 0 to 5000
-  // To get raw sensor values, call:
-  //  qtra.read(sensorValues); instead of unsigned int position = qtra.readLine(sensorValues);
-  unsigned int position = qtra.readLine(sensorValues);
-  
-  // print the sensor values as numbers from 0 to 1000, where 0 means maximum reflectance and
-  // 1000 means minimum reflectance, followed by the line position
-  for (unsigned char i = 0; i < NUM_SENSORS; i++)
-  {
-    Serial.print(sensorValues[i]);
-   
+  if (loopIndex % 100 == 0) {
+    // read calibrated sensor values and obtain a measure of the line position from 0 to 5000
+    // To get raw sensor values, call:
+    //  qtra.read(sensorValues); instead of unsigned int position = qtra.readLine(sensorValues);
+    unsigned int position = qtra.readLine(sensorValues);
+
+    // print the sensor values as numbers from 0 to 1000, where 0 means maximum reflectance and
+    // 1000 means minimum reflectance, followed by the line position
+    for (unsigned char i = 0; i < NUM_SENSORS; i++)
+    {
+      Serial.print(sensorValues[i]);
+      Serial.print('\t');
+
+    }
+    //Serial.println(); // uncomment this line if you are using raw values
+    Serial.println((int)position - 2500); // comment this line out if you are using raw values
   }
-  //Serial.println(); // uncomment this line if you are using raw values
-  Serial.println(position); // comment this line out if you are using raw values
-  
-  delay(250);
 }
 
