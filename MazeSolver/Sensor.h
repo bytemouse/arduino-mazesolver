@@ -3,7 +3,8 @@
 #include "Motor.h"
 #include <QTRSensors.h>
 
-class Sensor {
+class Sensor
+{
 private:
 	const unsigned char calibrationSeconds = 4;
 	const unsigned char NUM_SENSORS = 6;				// number of sensors used

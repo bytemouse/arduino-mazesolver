@@ -9,7 +9,8 @@ enum Direction
 	none
 };
 
-class Motor {
+class Motor
+{
 private:
 	const unsigned int normalSpeed = 130;
 	const unsigned int maxSpeed = 230;
