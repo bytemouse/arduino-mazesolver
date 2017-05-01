@@ -1,5 +1,5 @@
-#include "Motor.h"
 #include <Arduino.h>
+#include "Motor.h"
 
 Motor::Motor()
 {
@@ -17,24 +17,16 @@ void Motor::drive(int position)
 	int motorSpeed = kp * position + kd * (position - lastError);
 	lastError = position;
 
-	moveLeftMotor(max(min(normalSpeed - motorSpeed, maxSpeed), 0));
-	moveRightMotor(max(min(normalSpeed + motorSpeed, maxSpeed), 0));
+	moveMotorOnSide(left, normalSpeed - motorSpeed);
+	moveMotorOnSide(right, normalSpeed - motorSpeed);
 }
 
-void Motor::moveRightMotor(int speed)
+void Motor::moveMotorOnSide(Direction side, int speed)
 {
-	Serial.println("MotorRight");
+	speed = max(min(speed, maxSpeed), 0);
+	Serial.print("Motor ");
+	Serial.print(side == left ? "left " : "right ");
 	Serial.println(speed);
-	//Motor A forward
-	digitalWrite(12, HIGH); //Establishes forward direction of Channel A
-	analogWrite(3, speed);   //Spins the motor on Channel A
-}
-
-void Motor::moveLeftMotor(int speed)
-{
-	Serial.println("MotorLeft");
-	Serial.println(speed);
-	//Motor B forward
-	digitalWrite(13, HIGH); //Establishes forward direction of Channel B
-	analogWrite(11, speed);   //Spins the motor on Channel B
+	digitalWrite(side == left ? 13 : 12, HIGH);
+	analogWrite(side == left ? 11 : 3, speed);
 }

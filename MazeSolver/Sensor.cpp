@@ -1,10 +1,10 @@
-#include "Sensor.h"
 #include <Arduino.h>
 #include <QTRSensors.h>
+#include "Sensor.h"
 
 void Sensor::init()
 {
-	qtra = QTRSensorsAnalog(pins, NUM_SENSORS, NUM_SAMPLES_PER_SENSOR, EMITTER_PIN);
+	qtra = QTRSensorsAnalog(pins, numberOfSensors, numberOfSamplesPerSensor, emitterPin);
 
 	digitalWrite(13, HIGH);    // turn on Arduino's LED to indicate we are in calibration mode
 
@@ -17,7 +17,7 @@ void Sensor::init()
 
 
 	// print the calibration minimum values measured when emitters were on
-	for (int i = 0; i < NUM_SENSORS; i++)
+	for (int i = 0; i < numberOfSensors; i++)
 	{
 		Serial.print(qtra.calibratedMinimumOn[i]);
 		Serial.print(' ');
@@ -26,7 +26,7 @@ void Sensor::init()
 
 
 	// print the calibration maximum values measured when emitters were on
-	for (int i = 0; i < NUM_SENSORS; i++)
+	for (int i = 0; i < numberOfSensors; i++)
 	{
 		Serial.print(qtra.calibratedMaximumOn[i]);
 		Serial.print(' ');
@@ -42,7 +42,7 @@ int Sensor::getSensorValues()
 
 	// print the sensor values as numbers from 0 to 1000, where 0 means maximum reflectance and
 	// 1000 means minimum reflectance, followed by the line position
-	for (unsigned char i = 0; i < NUM_SENSORS; i++)
+	for (unsigned char i = 0; i < numberOfSensors; i++)
 	{
 		Serial.print(sensorValues[i]);
 		Serial.print('\t');

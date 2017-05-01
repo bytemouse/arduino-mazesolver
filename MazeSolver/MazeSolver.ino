@@ -1,5 +1,4 @@
 #include "Sensor.h"
-#include <QTRSensors.h>
 #include "Motor.h"
 
 Sensor sensor;

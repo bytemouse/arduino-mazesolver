@@ -18,10 +18,10 @@
     <None Include="MazeSolver.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Motor.cpp">
+    <ClCompile Include="Sensor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Sensor.cpp">
+    <ClCompile Include="Motor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

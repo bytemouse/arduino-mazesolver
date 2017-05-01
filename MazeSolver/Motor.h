@@ -18,14 +18,12 @@ private:
 	const float kd = 1;
 	int lastError;
 
-protected:
-
 public:
 	Motor();
 
 	void drive(int position);
-	void moveRightMotor(int speed);
-	void moveLeftMotor(int speed);
+
+	void moveMotorOnSide(Direction side, int speed);
 
 	Direction direction = none;
 };
