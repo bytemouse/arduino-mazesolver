@@ -12,20 +12,21 @@ enum Direction
 class Motor
 {
 private:
-	const unsigned int normalSpeed = 130;
-	const unsigned int maxSpeed = 230;
+	const float normalSpeed = 0.6f;
+	const float maxSpeed = 0.9f;
 	const float kp = 0.1;
 	const float kd = 1;
-	int lastError;
+	float lastError;
+
+	void moveBothMotors(float speedLeft, float speedRight);
 
 public:
+	Direction direction = none;
+
 	Motor();
 
-	void drive(int position);
-
-	void moveMotorOnSide(Direction side, int speed);
-
-	Direction direction = none;
+	void drive(float position);
+	void moveMotorOnSide(Direction side, float speed);
 };
 
 #endif

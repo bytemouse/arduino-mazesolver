@@ -10,23 +10,35 @@ Motor::Motor()
 	pinMode(13, OUTPUT); //Initiates Motor Channel B pin
 }
 
-void Motor::drive(int position)
+void Motor::drive(float position)
 {
-	if (direction == none) return;
+	if (direction == none)
+	{
+		moveBothMotors(0.0f, 0.0f);
+		return;
+	}
 
-	int motorSpeed = kp * position + kd * (position - lastError);
+	float motorSpeed = kp * position + kd * (position - lastError);
 	lastError = position;
 
-	moveMotorOnSide(left, normalSpeed - motorSpeed);
-	moveMotorOnSide(right, normalSpeed - motorSpeed);
+	moveBothMotors(normalSpeed - motorSpeed, normalSpeed + motorSpeed);
 }
 
-void Motor::moveMotorOnSide(Direction side, int speed)
+void Motor::moveBothMotors(float speedLeft, float speedRight)
+{
+	moveMotorOnSide(left, speedLeft);
+	Serial.print(' ');
+	moveMotorOnSide(right, speedRight);
+	Serial.println();
+}
+
+void Motor::moveMotorOnSide(Direction side, float speed)
 {
 	speed = max(min(speed, maxSpeed), 0);
 	Serial.print("Motor ");
 	Serial.print(side == left ? "left " : "right ");
-	Serial.println(speed);
+	Serial.print(' ');
+	Serial.print(speed);
 	digitalWrite(side == left ? 13 : 12, HIGH);
-	analogWrite(side == left ? 11 : 3, speed);
+	analogWrite(side == left ? 11 : 3, speed * 255);
 }

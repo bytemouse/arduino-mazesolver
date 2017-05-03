@@ -14,5 +14,19 @@ void setup()
 
 void loop()
 {
-	motor.drive(sensor.getSensorValues());
+	switch (Serial.read())
+	{
+	case '1':
+		motor.direction = none;
+		break;
+	case '2':
+		motor.direction = forward;
+		break;
+	default:
+		break;
+	}
+
+	sensor.updateSensorValues();
+	sensor.printSensorValues();
+	motor.drive(sensor.position);
 }

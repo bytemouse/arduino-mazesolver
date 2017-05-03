@@ -4,19 +4,14 @@
 
 void Sensor::init()
 {
-	qtra = QTRSensorsAnalog(pins, numberOfSensors, numberOfSamplesPerSensor, emitterPin);
-
-	digitalWrite(13, HIGH);    // turn on Arduino's LED to indicate we are in calibration mode
+	qtra = QTRSensorsAnalog(pins, numberOfSensors, 4, 2);
 
 	for (int i = 0; i < calibrationSeconds / 0.025; i++)
 	{
 		qtra.calibrate();       // reads all sensors 10 times at 2.5 ms per six sensors (i.e. ~25 ms per call)
 	}
 
-	digitalWrite(13, LOW);     // turn off Arduino's LED to indicate we are through with calibration
-
-
-	// print the calibration minimum values measured when emitters were on
+	// print the calibration minimum values measured
 	for (int i = 0; i < numberOfSensors; i++)
 	{
 		Serial.print(qtra.calibratedMinimumOn[i]);
@@ -25,7 +20,7 @@ void Sensor::init()
 	Serial.println();
 
 
-	// print the calibration maximum values measured when emitters were on
+	// print the calibration maximum values measured
 	for (int i = 0; i < numberOfSensors; i++)
 	{
 		Serial.print(qtra.calibratedMaximumOn[i]);
@@ -33,22 +28,21 @@ void Sensor::init()
 	}
 }
 
-int Sensor::getSensorValues()
+void Sensor::updateSensorValues()
 {
-	// read calibrated sensor values and obtain a measure of the line position from 0 to 5000
-	// To get raw sensor values, call:
-	//  qtra.read(sensorValues); instead of unsigned int position = qtra.readLine(sensorValues);
 	position = qtra.readLine(sensorValues);
+	position /= 2500;
+	position -= 1.0f;
+}
 
-	// print the sensor values as numbers from 0 to 1000, where 0 means maximum reflectance and
-	// 1000 means minimum reflectance, followed by the line position
+void Sensor::printSensorValues()
+{
 	for (unsigned char i = 0; i < numberOfSensors; i++)
 	{
-		Serial.print(sensorValues[i]);
+		Serial.print((float)sensorValues[i] / 1000);
 		Serial.print('\t');
 	}
-	//Serial.println(); // uncomment this line if you are using raw values
-	Serial.println((int)position - 2500); // comment this line out if you are using raw values
 
-	return (int)position - 2500;
+	Serial.print("Linienposition:\t");
+	Serial.println(position);
 }
