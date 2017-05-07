@@ -82,16 +82,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Motor.cpp">
-      <DeploymentContent>true</DeploymentContent>
-    </ClCompile>
-    <ClCompile Include="Sensor.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Motor.h">
-      <DeploymentContent>true</DeploymentContent>
-    </ClInclude>
-    <ClInclude Include="Sensor.h" />
+    <ClInclude Include="Direction.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
