@@ -264,9 +264,9 @@ void turn(char dir)
 //		delay(25);
 //
 //		// These variables record whether the robot has seen a line to the
-//		// left, straight ahead, and right, whil examining the current
+//		// left, straight ahead, and right, while examining the current
 //		// intersection.
-//		unsigned char found_left = 0;
+//		unsigned char found_left = 0; //TODO make this boolean
 //		unsigned char found_straight = 0;
 //		unsigned char found_right = 0;
 //
@@ -294,7 +294,7 @@ void turn(char dir)
 //		//TODO End of the maze
 //	}
 
-char select_turn(unsigned char found_left, unsigned char found_straight, unsigned char found_right)
+char select_turn(unsigned char found_left, unsigned char found_straight, unsigned char found_right) //TODO make this boolean
 {
 	// Make a decision about how to turn.  The following code
 	// implements a left-hand-on-the-wall strategy, where we always
