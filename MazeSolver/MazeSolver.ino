@@ -293,3 +293,18 @@ void turn(char dir)
 //		turn(dir);
 //		//TODO End of the maze
 //	}
+
+char select_turn(unsigned char found_left, unsigned char found_straight, unsigned char found_right)
+{
+	// Make a decision about how to turn.  The following code
+	// implements a left-hand-on-the-wall strategy, where we always
+	// turn as far to the left as possible.
+	if (found_left)
+		return 'L';
+	else if (found_straight)
+		return 'S';
+	else if (found_right)
+		return 'R';
+	else
+		return 'B';
+} // end select_turn
