@@ -2,17 +2,17 @@
 #include "Direction.h"
 
 const int numberOfSensors = 6;
+const int calibrationSeconds = 4;
+const int treshold = 400;
 // pid loop vars
 const float proportionalConst = 0.1f;
 const float derivateConst = 1.0f;
-
-const int calibrationSeconds = 4;
 const int standardMotorSpeed = 200;
 
-const int speed_a = 3;  //speed control for motor outputs 1 and 2 is on digital pin 10  (Right motor)
-const int speed_b = 11; //speed control for motor outputs 3 and 4 is on digital pin 11  (Left motor)
-const int dir_a = 12;  //direction control for motor outputs 1 and 2 is on digital pin 12  (Right motor)
-const int dir_b = 13;  //direction control for motor outputs 3 and 4 is on digital pin 13  (Left motor)
+const int speedA = 3;  //speed control for motor outputs 1 and 2 is on digital pin 10  (Right motor)
+const int speedB = 11; //speed control for motor outputs 3 and 4 is on digital pin 11  (Left motor)
+const int dirA = 12;  //direction control for motor outputs 1 and 2 is on digital pin 12  (Right motor)
+const int dirB = 13;  //direction control for motor outputs 3 and 4 is on digital pin 13  (Left motor)
 
 // motor tuning vars for maze navigating
 int turnSpeed = 200;  // tune value motors will run while turning (0-255) NOT TESTED
@@ -117,31 +117,31 @@ void moveMotorOnSide(Direction side, Direction orientation, int speed)
 {
 	speed = max(min(speed, 180), 0);
 
-	if (side = right)
+	if (side == right)
 	{
-		if (orientation = forward)
+		if (orientation == forward)
 		{
-			digitalWrite(dir_a, HIGH);
-			analogWrite(speed_a, speed);
+			digitalWrite(dirA, HIGH);
+			analogWrite(speedA, speed);
 		}
 		else
 		{
-			digitalWrite(dir_a, LOW);
-			analogWrite(speed_a, speed);
+			digitalWrite(dirA, LOW);
+			analogWrite(speedA, speed);
 		}
 
 	}
 	else
 	{
-		if (orientation = forward)
+		if (orientation == forward)
 		{
-			digitalWrite(dir_b, HIGH);
-			analogWrite(speed_b, speed);
+			digitalWrite(dirB, HIGH);
+			analogWrite(speedB, speed);
 		}
 		else
 		{
-			digitalWrite(dir_b, LOW);
-			analogWrite(speed_b, speed);
+			digitalWrite(dirB, LOW);
+			analogWrite(speedB, speed);
 		}
 
 	}
@@ -179,7 +179,7 @@ void turn(char dir)
 			position = qtrra.readLine(sensorValues);
 
 
-			while (sensorValues[5] < 300)  // wait for outer most sensor to find the line
+			while (sensorValues[5] < treshold)  // wait for outer most sensor to find the line
 			{
 				position = qtrra.readLine(sensorValues);
 			}
@@ -203,7 +203,7 @@ void turn(char dir)
 
 			position = qtrra.readLine(sensorValues);
 
-			while (sensorValues[1] < 300)  // wait for outer most sensor to find the line
+			while (sensorValues[1] < treshold)  // wait for outer most sensor to find the line
 			{
 				position = qtrra.readLine(sensorValues);
 			}
@@ -227,7 +227,7 @@ void turn(char dir)
 
 			position = qtrra.readLine(sensorValues);
 
-			while (sensorValues[1] < 300)  // wait for outer most sensor to find the line
+			while (sensorValues[1] < treshold)  // wait for outer most sensor to find the line
 			{
 				position = qtrra.readLine(sensorValues);
 			}
@@ -294,7 +294,7 @@ void turn(char dir)
 //		//TODO End of the maze
 //	}
 
-char select_turn(unsigned char found_left, unsigned char found_straight, unsigned char found_right) //TODO make this boolean
+char selectTurn(unsigned char found_left, unsigned char found_straight, unsigned char found_right) //TODO make this boolean
 {
 	// Make a decision about how to turn.  The following code
 	// implements a left-hand-on-the-wall strategy, where we always
