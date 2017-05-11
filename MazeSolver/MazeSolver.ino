@@ -11,6 +11,8 @@ const float derivateConst = 1.0f;
 
 const int standardMotorSpeed = 180;
 
+#pragma region "OldCode"
+
 // TODO nicht nötig, weil nur einmal verwendet und der Speicherbedarf klein bleiben soll
 //const int speedA = 3;  //speed control for motor outputs 1 and 2 is on digital pin 10  (Right motor)
 //const int speedB = 11; //speed control for motor outputs 3 and 4 is on digital pin 11  (Left motor)
@@ -20,6 +22,9 @@ const int standardMotorSpeed = 180;
 // TODO nie benutzt
 //int turnSpeed = 200;  // tune value motors will run while turning (0-255) NOT TESTED
 //int turnSpeedSlow = 125;  // tune value motors will run as they slow down from turning cycle to avoid overrun (0-255) NOT TESTED
+
+#pragma endregion
+
 int drivePastDelay = 300; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
 
 
@@ -33,7 +38,10 @@ unsigned int position;
 int lastError;
 int loopIndex;
 
-bool areDiversionsOnCrossing[3];
+bool isEachDiversionOnCrossing[3];
+
+long diversionCheckingStartTime;
+bool isDiversionCheckRunning;
 
 
 #pragma region "Initialization"
@@ -106,24 +114,47 @@ void loop()
 void drive()
 {
 	position = qtra.readLine(sensorValues);
-	int posPropotionalToMid = position - 2500;
 
-	int motorSpeed = proportionalConst * posPropotionalToMid + derivateConst * (posPropotionalToMid - lastError);
-	lastError = posPropotionalToMid;
+	if (direction == diversionChecking
+		&& millis() > diversionCheckingStartTime + drivePastDelay)
+	{
+		endFurtherDiversionChecking();
+	}
 
+	int motorSpeed;
+	int posPropotionalToMid;
 
 	switch (direction)
 	{
+	case diversionChecking:
+		moveBothMotors(standardMotorSpeed, standardMotorSpeed);
+		checkForDiversions();
+		break;
 	case none:
 		moveBothMotors(0, 0);
+		break;
+	case back:
+		moveBothMotors(standardMotorSpeed, 0);
+		checkForNewLineOnSide(right);
 		break;
 	case left:
 		moveBothMotors(0, standardMotorSpeed);
 		checkForNewLineOnSide(left);
 		break;
 	case forward:
+		posPropotionalToMid = position - 2500;
+
+		motorSpeed = proportionalConst * posPropotionalToMid + derivateConst * (posPropotionalToMid - lastError);
+		lastError = posPropotionalToMid;
+
 		moveBothMotors(standardMotorSpeed - motorSpeed, standardMotorSpeed + motorSpeed);
-		checkForTurns();
+
+		checkForDiversions();
+		if (isEachDiversionOnCrossing[left] || isEachDiversionOnCrossing[right])
+		{
+			direction = diversionChecking;
+			startFurtherDiversionCheckingTime();
+		}
 		break;
 	case right:
 		moveBothMotors(standardMotorSpeed, 0);
@@ -153,45 +184,36 @@ void moveBothMotors(int speedLeft, int speedRight)
 	moveMotorOnSide(right, speedRight);
 }
 
-void checkForTurns()
+void checkForDiversions()
 {
 	if (sensorValues[numberOfSensors - 1] > treshold)
 	{
-		areDiversionsOnCrossing[right] = true;
+		isEachDiversionOnCrossing[right] = true;
 	}
 	if (sensorValues[0] > treshold)
 	{
-		areDiversionsOnCrossing[left] = true;
+		isEachDiversionOnCrossing[left] = true;
 	}
-
-	if (areDiversionsOnCrossing[right] == true || areDiversionsOnCrossing[left] == true)
-	{
-		moveLastStepAndSetDirection();
-	}
-
 }
 
-void moveLastStepAndSetDirection()
+void endFurtherDiversionChecking()
 {
-	moveBothMotors(standardMotorSpeed, standardMotorSpeed);
-	delay(drivePastDelay);
-
 	// Check if there is a way up front
 	for (unsigned char i = 1; i < numberOfSensors - 1; i++)
 	{
 		if (sensorValues[i] > treshold)
 		{
-			areDiversionsOnCrossing[forward] = true;
+			isEachDiversionOnCrossing[forward] = true;
 			break;
 		}
 	}
 
 	// Go left preferably
-	if (areDiversionsOnCrossing[left] == true)
+	if (isEachDiversionOnCrossing[left] == true)
 	{
 		direction = left;
 	}
-	else if (areDiversionsOnCrossing[forward] == true)
+	else if (isEachDiversionOnCrossing[forward] == true)
 	{
 		direction = forward;
 	}
@@ -203,8 +225,13 @@ void moveLastStepAndSetDirection()
 	// Reset for next crossing
 	for (unsigned char i = 0; i < 3; i++)
 	{
-		areDiversionsOnCrossing[i] = false;
+		isEachDiversionOnCrossing[i] = false;
 	}
+}
+
+void startFurtherDiversionCheckingTime()
+{
+	diversionCheckingStartTime = millis();
 }
 
 #pragma endregion
@@ -219,6 +246,8 @@ void printSensorValues()
 
 	Serial.println((int)position - 2500);
 }
+
+#pragma region "OldCode"
 
 //// Turns to the sent variable of
 //// 'L' (left), 'R' (right), 'S' (straight), or 'B' (back)
@@ -364,3 +393,5 @@ void printSensorValues()
 //	else
 //		return 'B';
 //} // end select_turn
+
+#pragma endregion

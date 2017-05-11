@@ -7,4 +7,5 @@ enum Direction
 	forward,
 	none,
 	back,
+	diversionChecking
 };
