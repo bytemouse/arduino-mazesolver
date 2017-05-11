@@ -6,5 +6,5 @@ enum Direction
 	right,
 	forward,
 	none,
-	back
+	back,
 };
