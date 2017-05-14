@@ -60,12 +60,32 @@ void setup()
 	delay(1000);
 }
 
+
 void calibrate()
 {
-	for (int i = 0; i < calibrationSeconds / 0.025; i++)
+	for (int i = 0; i <= 100; i++)
 	{
+		if (i == 0 || i == 60)
+		{
+			moveMotorOnSide(left, back, standardMotorSpeed);
+			moveMotorOnSide(right, forward, standardMotorSpeed);
+		}
+
+		else if (i == 20 || i == 100)
+		{
+			moveMotorOnSide(left, forward, standardMotorSpeed);
+			moveMotorOnSide(right, back, standardMotorSpeed);
+		}
+
 		qtra.calibrate();
 	}
+
+	while (sensorValues[2] < treshold)
+	{
+		position = qtra.readLine(sensorValues);
+	}
+
+	moveBothMotors(0, 0);
 
 	// print the calibration minimum values measured when emitters were on
 	for (int i = 0; i < numberOfSensors; i++)
@@ -81,6 +101,7 @@ void calibrate()
 		Serial.print(qtra.calibratedMaximumOn[i]);
 		Serial.print(' ');
 	}
+	delay(300);
 }
 
 #pragma endregion
@@ -99,10 +120,11 @@ void loop()
 		break;
 	}
 
-	if (loopIndex % 100 == 0)
-	{
-		printSensorValues();
-	}
+	Serial.print(position);
+	Serial.print("  ");
+	Serial.print(sensorValues[0]);
+	Serial.print("  ");
+	Serial.println(sensorValues[5]);
 
 	drive();
 
@@ -171,17 +193,45 @@ void checkForNewLineOnSide(Direction side)
 	}
 }
 
-void moveMotorOnSide(Direction side, int speed)
+void moveMotorOnSide(Direction side, Direction orientation, int speed)
 {
-	speed = max(min(speed, standardMotorSpeed), 0);
-	digitalWrite(side == left ? 13 : 12, HIGH);
-	analogWrite(side == left ? 3 : 11, speed);
+	speed = max(min(speed, 180), 0);
+
+	if (side == right)
+	{
+		if (orientation == forward)
+		{
+			digitalWrite(12, HIGH);
+			analogWrite(3, speed);
+		}
+		else
+		{
+			digitalWrite(12, LOW);
+			analogWrite(3, speed);
+		}
+
+	}
+	else
+	{
+		if (orientation == forward)
+		{
+			digitalWrite(13, HIGH);
+			analogWrite(11, speed);
+		}
+		else
+		{
+			digitalWrite(13, LOW);
+			analogWrite(11, speed);
+		}
+
+	}
+
 }
 
 void moveBothMotors(int speedLeft, int speedRight)
 {
-	moveMotorOnSide(left, speedLeft);
-	moveMotorOnSide(right, speedRight);
+	moveMotorOnSide(left, forward, speedLeft);
+	moveMotorOnSide(right, forward, speedRight);
 }
 
 void checkForDiversions()
