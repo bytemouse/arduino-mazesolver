@@ -23,6 +23,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MazeSolver.cpp" />
+    <None Include="MazeSolver.ino" />
   </ItemGroup>
 </Project>

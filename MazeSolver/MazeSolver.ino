@@ -71,7 +71,7 @@ void calibrate()
 		position = qtra.readLine(sensorValues);
 	}
 
-	moveBothMotors(0, 0);
+	moveBothMotors(0, forward, 0, forward);
 
 	// print the calibration minimum values measured when emitters were on
 	for (int i = 0; i < numberOfSensors; i++)
@@ -135,18 +135,18 @@ void drive()
 	switch (direction)
 	{
 	case diversionChecking:
-		moveBothMotors(standardMotorSpeed, standardMotorSpeed);
+		moveBothMotors(standardMotorSpeed, forward, standardMotorSpeed, forward);
 		checkForDiversions();
 		break;
 	case none:
 		moveBothMotors(0, forward, 0, forward);
 		break;
 	case back:
-		moveBothMotors(standardMotorSpeed, 0);
+		moveBothMotors(standardMotorSpeed, forward, standardMotorSpeed, back);
 		checkForNewLineOnSide(right);
 		break;
 	case left:
-		moveBothMotors(0, standardMotorSpeed);
+		moveBothMotors(standardMotorSpeed, back, standardMotorSpeed, forward);
 		checkForNewLineOnSide(left);
 		break;
 	case forward:
@@ -155,7 +155,7 @@ void drive()
 		motorSpeed = proportionalConst * posPropotionalToMid + derivateConst * (posPropotionalToMid - lastError);
 		lastError = posPropotionalToMid;
 
-		moveBothMotors(standardMotorSpeed - motorSpeed, standardMotorSpeed + motorSpeed);
+		moveBothMotors(standardMotorSpeed - motorSpeed, forward, standardMotorSpeed + motorSpeed, forward);
 
 		checkForDiversions();
 		if (isEachDiversionOnCrossing[left] || isEachDiversionOnCrossing[right])
@@ -165,7 +165,7 @@ void drive()
 		}
 		break;
 	case right:
-		moveBothMotors(standardMotorSpeed, 0);
+		moveBothMotors(standardMotorSpeed, forward, standardMotorSpeed, back);
 		checkForNewLineOnSide(right);
 		break;
 	}
