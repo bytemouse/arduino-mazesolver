@@ -1,15 +1,15 @@
 #include <QTRSensors.h>
 #include "Direction.h"
 
-const int treshold = 400;
+const int threshold = 400;
 
 // pid loop vars
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
-const int maxMotorSpeed = 180;
+const int maxMotorSpeed = 150;
 
-int drivePastDelay = 700; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
+int drivePastDelay = 300; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
 
 const unsigned char ledPins[] = { 4, 5, 6, 7 };
 unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
@@ -69,7 +69,7 @@ void calibrate()
 		qtra.calibrate();
 	}
 
-	while (sensorValues[2] < treshold)
+	while (sensorValues[2] < threshold)
 	{
 		position = qtra.readLine(sensorValues);
 	}
@@ -131,11 +131,13 @@ void drive()
 	if (direction == diversionChecking
 		&& millis() > diversionCheckingStartTime + drivePastDelay)
 	{
-		endFurtherDiversionChecking();
+		decideWhatDirection();
 	}
 
 	int motorSpeed;
 	int posPropotionalToMid;
+
+	//direction = forward;
 
 	switch (direction)
 	{
@@ -195,11 +197,11 @@ void lightLed(unsigned char index)
 
 void checkForNewLineOnSide(Direction side)
 {
-	if (sensorValues[side == left ? 0 : sizeof(sensorPins) - 1] > treshold)
+	if (sensorValues[side == left ? 0 : sizeof(sensorPins) - 1] > threshold)
 	{
-		lightLed(3);
+		//lightLed(3);
 
-		while (sensorValues[side == left ? 2 : sizeof(sensorPins) - 3] > treshold)
+		while (sensorValues[side == left ? 2 : sizeof(sensorPins) - 3] < threshold)
 		{
 			position = qtra.readLine(sensorValues);
 
@@ -226,22 +228,22 @@ void moveBothMotors(int speedLeft, Direction orientationLeft, int speedRight, Di
 
 void checkForDiversions()
 {
-	if (sensorValues[sizeof(sensorPins) - 1] > treshold)
+	if (sensorValues[sizeof(sensorPins) - 1] > threshold)
 	{
 		isEachDiversionOnCrossing[right] = true;
 	}
-	if (sensorValues[0] > treshold)
+	if (sensorValues[0] > threshold)
 	{
 		isEachDiversionOnCrossing[left] = true;
 	}
 }
 
-void endFurtherDiversionChecking()
+void decideWhatDirection()
 {
 	// Check if there is a way up front
 	for (unsigned char i = 1; i < sizeof(sensorPins) - 1; i++)
 	{
-		if (sensorValues[i] > treshold)
+		if (sensorValues[i] > threshold)
 		{
 			isEachDiversionOnCrossing[forward] = true;
 			break;
@@ -263,7 +265,7 @@ void endFurtherDiversionChecking()
 	}
 
 	// Reset for next crossing
-	for (unsigned char i = 0; i < 3; i++)
+	for (unsigned char i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
 	{
 		isEachDiversionOnCrossing[i] = false;
 	}
