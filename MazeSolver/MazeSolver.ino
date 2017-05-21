@@ -58,12 +58,12 @@ void calibrate()
 	{
 		if (i == 0 || i == 60)
 		{
-			moveBothMotors(maxMotorSpeed, back, maxMotorSpeed, forward);
+			moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
 		}
 
 		else if (i == 20 || i == 100)
 		{
-			moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, back);
+			moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		}
 
 		qtra.calibrate();
@@ -139,6 +139,8 @@ void drive()
 
 	//direction = forward;
 
+	turnOffAllLeds();
+
 	switch (direction)
 	{
 	case diversionChecking:
@@ -147,19 +149,26 @@ void drive()
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, forward);
 		checkForDiversions();
 		break;
+
 	case none:
 		moveBothMotors(0, forward, 0, forward);
 		break;
-	case back:
-		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, back);
+
+	case backward:
+		lightLed(2);
+		lightLed(3);
+
+		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
 		break;
+
 	case left:
 		lightLed(2);
 
-		moveBothMotors(maxMotorSpeed, back, maxMotorSpeed, forward);
+		moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
 		checkForNewLineOnSide(left);
 		break;
+
 	case forward:
 		lightLed(0);
 
@@ -176,11 +185,16 @@ void drive()
 			direction = diversionChecking;
 			startFurtherDiversionCheckingTime();
 		}
+		else if (isDeadEnd())
+		{
+			direction = backward;
+		}
 		break;
+
 	case right:
 		lightLed(3);
 
-		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, back);
+		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
 		break;
 	}
@@ -188,11 +202,27 @@ void drive()
 
 void lightLed(unsigned char index)
 {
+	digitalWrite(ledPins[index], HIGH);
+}
+
+void turnOffAllLeds()
+{
 	for (unsigned char i = 0; i < sizeof(ledPins); i++)
 	{
 		digitalWrite(ledPins[i], LOW);
 	}
-	digitalWrite(ledPins[index], HIGH);
+}
+
+bool isDeadEnd()
+{
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
+	{
+		if (sensorValues[i] > threshold)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void checkForNewLineOnSide(Direction side)
@@ -205,7 +235,7 @@ void checkForNewLineOnSide(Direction side)
 		{
 			position = qtra.readLine(sensorValues);
 
-			moveBothMotors(maxMotorSpeed, side == left ? back : forward, maxMotorSpeed, side == left ? forward : back);
+			moveBothMotors(maxMotorSpeed, side == left ? backward : forward, maxMotorSpeed, side == left ? forward : backward);
 		}
 
 		direction = forward;

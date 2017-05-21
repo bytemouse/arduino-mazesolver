@@ -6,6 +6,6 @@ enum Direction
 	right,
 	forward,
 	none,
-	back,
+	backward,
 	diversionChecking
 };
