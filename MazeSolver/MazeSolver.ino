@@ -10,7 +10,7 @@ const float derivateConst = 1.0f;
 const int maxMotorSpeed = 150;
 
 Direction path[300];
-unsigned int ;
+unsigned int pathLength;
 
 int drivePastDelay = 300; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
 
