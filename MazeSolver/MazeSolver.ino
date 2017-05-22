@@ -140,7 +140,6 @@ void drive()
 	int motorSpeed;
 	int posPropotionalToMid;
 
-  int ;
 	//direction = forward;
 
 	turnOffAllLeds();
@@ -164,7 +163,7 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
-    path[pathLength]= back;
+    path[pathLength]= backward;
     simplifyMaze();      
 		break;
 
@@ -331,7 +330,7 @@ void simplifyMaze()
 {
   pathLength++;
   
-  if(pathLength < 3 || path[pathLength-2] != back)
+  if(pathLength < 3 || path[pathLength-2] != backward)
     return;
 
   int totalAngle = 0;
@@ -359,16 +358,16 @@ void simplifyMaze()
   switch(totalAngle)
   {
     case 0:
-  path[pathLength - 3] = 'S';
+  path[pathLength - 3] = forward;
   break;
     case 90:
-  path[pathLength - 3] = 'R';
+  path[pathLength - 3] = right;
   break;
     case 180:
-  path[pathLength - 3] = 'B';
+  path[pathLength - 3] = backward;
   break;
     case 270:
-  path[pathLength - 3] = 'L';
+  path[pathLength - 3] = left;
   break;
   }
 
