@@ -9,6 +9,9 @@ const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 150;
 
+Direction path[300];
+unsigned int ;
+
 int drivePastDelay = 300; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
 
 const unsigned char ledPins[] = { 4, 5, 6, 7 };
@@ -137,6 +140,7 @@ void drive()
 	int motorSpeed;
 	int posPropotionalToMid;
 
+  int ;
 	//direction = forward;
 
 	turnOffAllLeds();
@@ -160,6 +164,8 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
+    path[pathLength]= back;
+    simplifyMaze();      
 		break;
 
 	case left:
@@ -167,6 +173,9 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
 		checkForNewLineOnSide(left);
+		
+		path[pathLength]= left;
+    simplifyMaze();
 		break;
 
 	case forward:
@@ -189,6 +198,9 @@ void drive()
 		{
 			direction = backward;
 		}
+    
+    path[pathLength]= forward;
+    simplifyMaze();     
 		break;
 
 	case right:
@@ -196,6 +208,9 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
+    
+    path[pathLength]= right;
+    simplifyMaze();    
 		break;
 	}
 }
@@ -306,6 +321,62 @@ void startFurtherDiversionCheckingTime()
 	diversionCheckingStartTime = millis();
 }
 
+//LBR = B
+//LBS = R
+//RBL = B
+//SBL = R
+//SBS = B
+//LBL = S
+void simplifyMaze()
+{
+  pathLength++;
+  
+  if(pathLength < 3 || path[pathLength-2] != back)
+    return;
+
+  int totalAngle = 0;
+  int i;
+  for(i=1;i<=3;i++)
+  {
+    switch(path[pathLength-i])
+    {
+      case right:
+        totalAngle += 90;
+  break;
+      case left:
+  totalAngle += 270;
+  break;
+      case backward:
+  totalAngle += 180;
+  break;
+    }
+  }
+
+  // Get the angle as a number between 0 and 360 degrees.
+  totalAngle = totalAngle % 360;
+
+  // Replace all of those turns with a single one.
+  switch(totalAngle)
+  {
+    case 0:
+  path[pathLength - 3] = 'S';
+  break;
+    case 90:
+  path[pathLength - 3] = 'R';
+  break;
+    case 180:
+  path[pathLength - 3] = 'B';
+  break;
+    case 270:
+  path[pathLength - 3] = 'L';
+  break;
+  }
+
+  // The path is now two steps shorter.
+  pathLength -= 2;
+  
+} 
+
 #pragma endregion
 
 void printSensorValues()
@@ -317,4 +388,14 @@ void printSensorValues()
 	}
 
 	Serial.println((int)position - 2500);
+}
+
+void printPath(){
+  Serial.println("+++++++++++++++++");
+  int x;
+  while(x<=pathLength){
+  Serial.println(path[x]);
+  x++;
+  }
+  Serial.println("+++++++++++++++++");
 }
