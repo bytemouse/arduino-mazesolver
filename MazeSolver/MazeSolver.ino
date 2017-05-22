@@ -11,6 +11,7 @@ const int maxMotorSpeed = 150;
 
 Direction path[300];
 unsigned int pathLength;
+unsigned int pathPositionInLaterRun;
 
 int drivePastDelay = 300; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
 
@@ -28,6 +29,8 @@ bool isEachDiversionOnCrossing[3];
 
 long diversionCheckingStartTime;
 bool isDiversionCheckRunning;
+
+bool isFirstRun = true;
 
 
 #pragma region "Initialization"
@@ -113,12 +116,15 @@ void loop()
 		break;
 	}
 
-	// print position and outer sensor values over serial port
-	Serial.print(position);
-	Serial.print("  ");
-	Serial.print(sensorValues[0]);
-	Serial.print("  ");
-	Serial.println(sensorValues[5]);
+	printSensorValues();
+
+	// boilerplate code
+	// TODO declare and find good pin
+	// if button pressed start the simplified path
+	if (digitalRead(/*unused pin*/ 10) == HIGH)
+	{
+		isFirstRun = false;
+	}
 
 	drive();
 }
@@ -137,12 +143,10 @@ void drive()
 		decideWhatDirection();
 	}
 
+	turnOffAllLeds();
+
 	int motorSpeed;
 	int posPropotionalToMid;
-
-	//direction = forward;
-
-	turnOffAllLeds();
 
 	switch (direction)
 	{
@@ -163,8 +167,8 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
-    path[pathLength]= backward;
-    simplifyMaze();      
+		path[pathLength] = backward;
+		simplifyMaze();
 		break;
 
 	case left:
@@ -172,9 +176,17 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
 		checkForNewLineOnSide(left);
-		
-		path[pathLength]= left;
-    simplifyMaze();
+
+		if (isFirstRun)
+		{
+			path[pathLength] = left;
+			pathLength++;
+			simplifyMaze();
+		}
+		else
+		{
+			pathPositionInLaterRun++;
+		}
 		break;
 
 	case forward:
@@ -190,16 +202,28 @@ void drive()
 		checkForDiversions();
 		if (isEachDiversionOnCrossing[left] || isEachDiversionOnCrossing[right])
 		{
-			direction = diversionChecking;
-			startFurtherDiversionCheckingTime();
+			if (isFirstRun)
+			{
+				direction = diversionChecking;
+				startFurtherDiversionCheckingTime();
+			}
+			else
+			{
+				direction = path[pathPositionInLaterRun];
+				pathPositionInLaterRun++;
+			}
 		}
 		else if (isDeadEnd())
 		{
 			direction = backward;
 		}
-    
-    path[pathLength]= forward;
-    simplifyMaze();     
+
+		if (isFirstRun)
+		{
+			path[pathLength] = forward;
+			pathLength++;
+			simplifyMaze();
+		}
 		break;
 
 	case right:
@@ -207,9 +231,17 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
-    
-    path[pathLength]= right;
-    simplifyMaze();    
+
+		if (isFirstRun)
+		{
+			path[pathLength] = right;
+			pathLength++;
+			simplifyMaze();
+		}
+		else
+		{
+			pathPositionInLaterRun++;
+		}
 		break;
 	}
 }
@@ -243,8 +275,6 @@ void checkForNewLineOnSide(Direction side)
 {
 	if (sensorValues[side == left ? 0 : sizeof(sensorPins) - 1] > threshold)
 	{
-		//lightLed(3);
-
 		while (sensorValues[side == left ? 2 : sizeof(sensorPins) - 3] < threshold)
 		{
 			position = qtra.readLine(sensorValues);
@@ -328,53 +358,52 @@ void startFurtherDiversionCheckingTime()
 //LBL = S
 void simplifyMaze()
 {
-  pathLength++;
-  
-  if(pathLength < 3 || path[pathLength-2] != backward)
-    return;
+	if (pathLength < 3 || path[pathLength - 2] != backward)
+	{
+		return;
+	}
 
-  int totalAngle = 0;
-  int i;
-  for(i=1;i<=3;i++)
-  {
-    switch(path[pathLength-i])
-    {
-      case right:
-        totalAngle += 90;
-  break;
-      case left:
-  totalAngle += 270;
-  break;
-      case backward:
-  totalAngle += 180;
-  break;
-    }
-  }
+	int totalAngle = 0;
 
-  // Get the angle as a number between 0 and 360 degrees.
-  totalAngle = totalAngle % 360;
+	for (unsigned char i = 1; i <= 3; i++)
+	{
+		switch (path[pathLength - i])
+		{
+		case right:
+			totalAngle += 90;
+			break;
+		case left:
+			totalAngle += 270;
+			break;
+		case backward:
+			totalAngle += 180;
+			break;
+		}
+	}
 
-  // Replace all of those turns with a single one.
-  switch(totalAngle)
-  {
-    case 0:
-  path[pathLength - 3] = forward;
-  break;
-    case 90:
-  path[pathLength - 3] = right;
-  break;
-    case 180:
-  path[pathLength - 3] = backward;
-  break;
-    case 270:
-  path[pathLength - 3] = left;
-  break;
-  }
+	// Get the angle as a number between 0 and 360 degrees.
+	totalAngle = totalAngle % 360;
 
-  // The path is now two steps shorter.
-  pathLength -= 2;
-  
-} 
+	// Replace all of those turns with a single one.
+	switch (totalAngle)
+	{
+	case 0:
+		path[pathLength - 3] = forward;
+		break;
+	case 90:
+		path[pathLength - 3] = right;
+		break;
+	case 180:
+		path[pathLength - 3] = backward;
+		break;
+	case 270:
+		path[pathLength - 3] = left;
+		break;
+	}
+
+	// The path is now two steps shorter.
+	pathLength -= 2;
+}
 
 #pragma endregion
 
@@ -386,15 +415,16 @@ void printSensorValues()
 		Serial.print('\t');
 	}
 
+	Serial.print(" linePosition: ");
 	Serial.println((int)position - 2500);
 }
 
-void printPath(){
-  Serial.println("+++++++++++++++++");
-  int x;
-  while(x<=pathLength){
-  Serial.println(path[x]);
-  x++;
-  }
-  Serial.println("+++++++++++++++++");
+void printPath()
+{
+	Serial.println("+++++++++++++++++");
+	for (unsigned int i = 0; i < pathLength; i++)
+	{
+		Serial.println(path[i]);
+	}
+	Serial.println("+++++++++++++++++");
 }
