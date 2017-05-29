@@ -1,5 +1,14 @@
+#include "Motor.h"
 #include <QTRSensors.h>
 #include "Direction.h"
+
+#pragma region "Pin declerations"
+const unsigned char ledPins[] = { 4, 5, 6, 7 };
+unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
+const unsigned char pushButtonPin = 2;
+const unsigned char bluetoothRxPin = 7;
+const unsigned char bluetoothTxPin = 10;
+#pragma endregion
 
 const int threshold = 400;
 
@@ -9,18 +18,19 @@ const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 150;
 
-Direction path[300];
+// data type change in order to save memory
+// (I don't really like it, because it makes the code less readable IMHO, but ya)
+unsigned char path[300];
+
 unsigned int pathLength;
 unsigned int pathPositionInLaterRun;
 
-int drivePastDelay = 300; // tune value in mseconds motors will run past intersection to align wheels for turn NOT TESTED
+int pastDiversionTurnDelayMs = 300;
 
-const unsigned char ledPins[] = { 4, 5, 6, 7 };
-unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
 QTRSensorsAnalog qtra(sensorPins, sizeof(sensorPins), 4, 2);
 unsigned int sensorValues[sizeof(sensorPins)];
 
-Direction direction = forward;
+unsigned char direction = forward;
 
 unsigned int position;
 int lastError;
@@ -46,6 +56,8 @@ void setup()
 		pinMode(ledPins[i], OUTPUT);
 	}
 
+	pinMode(pushButtonPin, INPUT);
+
 	Serial.begin(9600);
 
 	delay(500);
@@ -59,6 +71,11 @@ void setup()
 
 void calibrate()
 {
+	lightLed(0);
+	lightLed(1);
+	lightLed(2);
+	lightLed(3);
+
 	// make half-turns to have values for black and white without holding it
 	for (int i = 0; i <= 100; i++)
 	{
@@ -116,13 +133,12 @@ void loop()
 		break;
 	}
 
-
-	// boilerplate code
-	// TODO declare and find good pin
 	// if button pressed start the simplified path
-	if (digitalRead(/*unused pin*/ 1) == HIGH)
+	// unused digital pins are 2, 7, 10 and two of them are for the bluetooth module
+	if (digitalRead(pushButtonPin) == HIGH)
 	{
 		isFirstRun = false;
+		direction = forward;
 	}
 
 	drive();
@@ -137,7 +153,7 @@ void drive()
 
 	// if the time for the last step before turn is over
 	if (direction == diversionChecking
-		&& millis() > diversionCheckingStartTime + drivePastDelay)
+		&& millis() > diversionCheckingStartTime + pastDiversionTurnDelayMs)
 	{
 		decideWhatDirection();
 	}
@@ -157,7 +173,19 @@ void drive()
 		break;
 
 	case none:
+		lightLed(0);
+		lightLed(3);
+
 		moveBothMotors(0, forward, 0, forward);
+
+
+		// TODO remove this
+		// for now supposed to replace the not existing push button
+		// you just have to quickly pick the vehicle up and place it at the start position
+		delay(4000);
+		isFirstRun = false;
+		direction = forward;
+
 		break;
 
 	case backward:
@@ -188,8 +216,8 @@ void drive()
 		checkForDiversions();
 		if (isEachDiversionOnCrossing[left] || isEachDiversionOnCrossing[right])
 		{
-				direction = diversionChecking;
-				startFurtherDiversionCheckingTime();
+			direction = diversionChecking;
+			startFurtherDiversionCheckingTime();
 		}
 		else if (isDeadEnd())
 		{
@@ -256,20 +284,6 @@ void checkForNewLineOnSide(Direction side)
 	}
 }
 
-void moveMotorOnSide(Direction side, Direction orientation, int speed)
-{
-	speed = max(min(speed, 180), 0);
-
-	digitalWrite(side == left ? 13 : 12, orientation == forward ? HIGH : LOW);
-	analogWrite(side == left ? 3 : 11, speed);
-}
-
-void moveBothMotors(int speedLeft, Direction orientationLeft, int speedRight, Direction orientationRight)
-{
-	moveMotorOnSide(left, orientationLeft, speedLeft);
-	moveMotorOnSide(right, orientationRight, speedRight);
-}
-
 void checkForDiversions()
 {
 	if (sensorValues[sizeof(sensorPins) - 1] > threshold)
@@ -294,13 +308,24 @@ void decideWhatDirection()
 		}
 	}
 
-	// Go left preferably
-	if (sensorValues[0] > threshold && sensorValues[1] > threshold && sensorValues[2] > threshold && sensorValues[3] > threshold && sensorValues[4] > threshold && sensorValues[5] > threshold)
+	// check if the destination was reached
+	bool destinationWasReached = true;
+	for (int i = 0; i < sizeof(sensorPins); i++)
+	{
+		if (sensorValues[i] < threshold)
+		{
+			destinationWasReached = false;
+		}
+	}
+
+	// Stop if destination was reached
+	// Else go left preferably
+	if (destinationWasReached)
 	{
 		printPath();
 		direction = none;
 	}
-	 else if (isEachDiversionOnCrossing[left] == true)
+	else if (isEachDiversionOnCrossing[left] == true)
 	{
 		direction = left;
 		if (isFirstRun)
