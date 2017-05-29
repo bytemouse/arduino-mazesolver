@@ -116,12 +116,11 @@ void loop()
 		break;
 	}
 
-	printSensorValues();
 
 	// boilerplate code
 	// TODO declare and find good pin
 	// if button pressed start the simplified path
-	if (digitalRead(/*unused pin*/ 10) == HIGH)
+	if (digitalRead(/*unused pin*/ 1) == HIGH)
 	{
 		isFirstRun = false;
 	}
@@ -167,8 +166,6 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
-		path[pathLength] = backward;
-		simplifyMaze();
 		break;
 
 	case left:
@@ -176,17 +173,6 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
 		checkForNewLineOnSide(left);
-
-		if (isFirstRun)
-		{
-			path[pathLength] = left;
-			pathLength++;
-			simplifyMaze();
-		}
-		else
-		{
-			pathPositionInLaterRun++;
-		}
 		break;
 
 	case forward:
@@ -202,27 +188,22 @@ void drive()
 		checkForDiversions();
 		if (isEachDiversionOnCrossing[left] || isEachDiversionOnCrossing[right])
 		{
-			if (isFirstRun)
-			{
 				direction = diversionChecking;
 				startFurtherDiversionCheckingTime();
-			}
-			else
-			{
-				direction = path[pathPositionInLaterRun];
-				pathPositionInLaterRun++;
-			}
 		}
 		else if (isDeadEnd())
 		{
 			direction = backward;
-		}
-
-		if (isFirstRun)
-		{
-			path[pathLength] = forward;
-			pathLength++;
-			simplifyMaze();
+			if (isFirstRun)
+			{
+				path[pathLength] = backward;
+				simplifyMaze();
+				pathLength++;
+			}
+			else
+			{
+				pathPositionInLaterRun++;
+			}
 		}
 		break;
 
@@ -231,17 +212,6 @@ void drive()
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
-
-		if (isFirstRun)
-		{
-			path[pathLength] = right;
-			pathLength++;
-			simplifyMaze();
-		}
-		else
-		{
-			pathPositionInLaterRun++;
-		}
 		break;
 	}
 }
@@ -325,17 +295,52 @@ void decideWhatDirection()
 	}
 
 	// Go left preferably
-	if (isEachDiversionOnCrossing[left] == true)
+	if (sensorValues[0] > threshold && sensorValues[1] > threshold && sensorValues[2] > threshold && sensorValues[3] > threshold && sensorValues[4] > threshold && sensorValues[5] > threshold)
+	{
+		printPath();
+		direction = none;
+	}
+	 else if (isEachDiversionOnCrossing[left] == true)
 	{
 		direction = left;
+		if (isFirstRun)
+		{
+			path[pathLength] = left;
+			pathLength++;
+			simplifyMaze();
+		}
+		else
+		{
+			pathPositionInLaterRun++;
+		}
 	}
 	else if (isEachDiversionOnCrossing[forward] == true)
 	{
 		direction = forward;
+		if (isFirstRun)
+		{
+			path[pathLength] = forward;
+			pathLength++;
+			simplifyMaze();
+		}
+		else
+		{
+			pathPositionInLaterRun++;
+		}
 	}
 	else
 	{
 		direction = right;
+		if (isFirstRun)
+		{
+			path[pathLength] = right;
+			pathLength++;
+			simplifyMaze();
+		}
+		else
+		{
+			pathPositionInLaterRun++;
+		}
 	}
 
 	// Reset for next crossing
