@@ -137,8 +137,7 @@ void loop()
 	// unused digital pins are 2, 7, 10 and two of them are for the bluetooth module
 	if (digitalRead(pushButtonPin) == HIGH)
 	{
-		isFirstRun = false;
-		direction = forward;
+		onRestartButtonKlicked();
 	}
 
 	drive();
@@ -183,8 +182,7 @@ void drive()
 		// for now supposed to replace the not existing push button
 		// you just have to quickly pick the vehicle up and place it at the start position
 		delay(4000);
-		isFirstRun = false;
-		direction = forward;
+		onRestartButtonKlicked();
 
 		break;
 
@@ -257,6 +255,13 @@ void turnOffAllLeds()
 	}
 }
 
+void onRestartButtonKlicked()
+{
+	pathPositionInLaterRun = 0;
+	isFirstRun = false;
+	direction = forward;
+}
+
 bool isDeadEnd()
 {
 	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
@@ -298,6 +303,13 @@ void checkForDiversions()
 
 void decideWhatDirection()
 {
+	if (!isFirstRun)
+	{
+		direction = path[pathPositionInLaterRun];
+		pathPositionInLaterRun++;
+		return;
+	}
+
 	// Check if there is a way up front
 	for (unsigned char i = 1; i < sizeof(sensorPins) - 1; i++)
 	{
@@ -325,47 +337,24 @@ void decideWhatDirection()
 		printPath();
 		direction = none;
 	}
-	else if (isEachDiversionOnCrossing[left] == true)
-	{
-		direction = left;
-		if (isFirstRun)
-		{
-			path[pathLength] = left;
-			pathLength++;
-			simplifyMaze();
-		}
-		else
-		{
-			pathPositionInLaterRun++;
-		}
-	}
-	else if (isEachDiversionOnCrossing[forward] == true)
-	{
-		direction = forward;
-		if (isFirstRun)
-		{
-			path[pathLength] = forward;
-			pathLength++;
-			simplifyMaze();
-		}
-		else
-		{
-			pathPositionInLaterRun++;
-		}
-	}
 	else
 	{
-		direction = right;
-		if (isFirstRun)
+		if (isEachDiversionOnCrossing[left])
 		{
-			path[pathLength] = right;
-			pathLength++;
-			simplifyMaze();
+			direction = left;
+		}
+		else if (isEachDiversionOnCrossing[forward])
+		{
+			direction = forward;
 		}
 		else
 		{
-			pathPositionInLaterRun++;
+			direction = right;
 		}
+
+		path[pathLength] = direction;
+		pathLength++;
+		simplifyMaze();
 	}
 
 	// Reset for next crossing
@@ -380,12 +369,12 @@ void startFurtherDiversionCheckingTime()
 	diversionCheckingStartTime = millis();
 }
 
-//LBR = B
-//LBS = R
-//RBL = B
-//SBL = R
-//SBS = B
-//LBL = S
+// LBR = B
+// LBS = R
+// RBL = B
+// SBL = R
+// SBS = B
+// LBL = S
 void simplifyMaze()
 {
 	if (pathLength < 3 || path[pathLength - 2] != backward)

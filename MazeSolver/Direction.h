@@ -2,10 +2,10 @@
 
 enum Direction
 {
+	none,
 	left,
 	right,
 	forward,
-	none,
 	backward,
 	diversionChecking
 };
