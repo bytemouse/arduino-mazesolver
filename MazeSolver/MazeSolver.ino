@@ -220,16 +220,7 @@ void drive()
 		else if (isDeadEnd())
 		{
 			direction = backward;
-			if (isFirstRun)
-			{
-				path[pathLength] = backward;
-				simplifyMaze();
-				pathLength++;
-			}
-			else
-			{
-				pathPositionInLaterRun++;
-			}
+			storeTurnToPath();
 		}
 		break;
 
@@ -242,9 +233,9 @@ void drive()
 	}
 }
 
-void lightLed(unsigned char index)
+void lightLed(unsigned char ledIndex)
 {
-	digitalWrite(ledPins[index], HIGH);
+	digitalWrite(ledPins[ledIndex], HIGH);
 }
 
 void turnOffAllLeds()
@@ -307,61 +298,68 @@ void decideWhatDirection()
 	{
 		direction = path[pathPositionInLaterRun];
 		pathPositionInLaterRun++;
-		return;
-	}
-
-	// Check if there is a way up front
-	for (unsigned char i = 1; i < sizeof(sensorPins) - 1; i++)
-	{
-		if (sensorValues[i] > threshold)
-		{
-			isEachDiversionOnCrossing[forward] = true;
-			break;
-		}
-	}
-
-	// check if the destination was reached
-	bool destinationWasReached = true;
-	for (int i = 0; i < sizeof(sensorPins); i++)
-	{
-		if (sensorValues[i] < threshold)
-		{
-			destinationWasReached = false;
-		}
-	}
-
-	// Stop if destination was reached
-	// Else go left preferably
-	if (destinationWasReached)
-	{
-		printPath();
-		direction = none;
 	}
 	else
 	{
-		if (isEachDiversionOnCrossing[left])
+		// Check if there is a way up front
+		for (unsigned char i = 1; i < sizeof(sensorPins) - 1; i++)
 		{
-			direction = left;
+			if (sensorValues[i] > threshold)
+			{
+				isEachDiversionOnCrossing[forward] = true;
+				break;
+			}
 		}
-		else if (isEachDiversionOnCrossing[forward])
+
+		// check if the destination was reached
+		bool destinationWasReached = true;
+		for (int i = 0; i < sizeof(sensorPins); i++)
 		{
-			direction = forward;
+			if (sensorValues[i] < threshold)
+			{
+				destinationWasReached = false;
+			}
+		}
+
+		// Stop if destination was reached
+		// Else go left preferably
+		if (destinationWasReached)
+		{
+			printPath();
+			direction = none;
 		}
 		else
 		{
-			direction = right;
+			if (isEachDiversionOnCrossing[left])
+			{
+				direction = left;
+			}
+			else if (isEachDiversionOnCrossing[forward])
+			{
+				direction = forward;
+			}
+			else
+			{
+				direction = right;
+			}
+
+			storeTurnToPath();
 		}
 
-		path[pathLength] = direction;
-		pathLength++;
-		simplifyMaze();
+		// Reset for next crossing
+		for (unsigned char i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
+		{
+			isEachDiversionOnCrossing[i] = false;
+		}
 	}
+}
 
-	// Reset for next crossing
-	for (unsigned char i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
-	{
-		isEachDiversionOnCrossing[i] = false;
-	}
+void storeTurnToPath()
+{
+	Serial.println(direction);
+	path[pathLength] = direction;
+	pathLength++;
+	//simplifyMaze();
 }
 
 void startFurtherDiversionCheckingTime()
@@ -421,6 +419,8 @@ void simplifyMaze()
 	}
 
 	// The path is now two steps shorter.
+	path[pathLength - 1] = none;
+	path[pathLength - 2] = none;
 	pathLength -= 2;
 }
 
