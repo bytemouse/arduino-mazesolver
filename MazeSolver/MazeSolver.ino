@@ -2,24 +2,21 @@
 #include <QTRSensors.h>
 #include "Direction.h"
 
-#pragma region "Pin declerations"
+#pragma region "Pin declarations"
 const unsigned char ledPins[] = { 4, 5, 6, 7 };
 unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
-const unsigned char pushButtonPin = 2;
 const unsigned char bluetoothRxPin = 7;
 const unsigned char bluetoothTxPin = 10;
 #pragma endregion
 
 const int threshold = 400;
 
-// pid loop vars
+// pd loop constants
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 150;
 
-// data type change in order to save memory
-// (I don't really like it, because it makes the code less readable IMHO, but ya)
 unsigned char path[300];
 
 unsigned int pathLength;
@@ -55,8 +52,6 @@ void setup()
 	{
 		pinMode(ledPins[i], OUTPUT);
 	}
-
-	pinMode(pushButtonPin, INPUT);
 
 	Serial.begin(9600);
 
@@ -133,13 +128,6 @@ void loop()
 		break;
 	}
 
-	// if button pressed start the simplified path
-	// unused digital pins are 2, 7, 10 and two of them are for the bluetooth module
-	if (digitalRead(pushButtonPin) == HIGH)
-	{
-		onRestartButtonKlicked();
-	}
-
 	drive();
 }
 
@@ -177,13 +165,11 @@ void drive()
 
 		moveBothMotors(0, forward, 0, forward);
 
-
-		// TODO remove this
-		// for now supposed to replace the not existing push button
-		// you just have to quickly pick the vehicle up and place it at the start position
-		delay(4000);
-		onRestartButtonKlicked();
-
+		// restart when vehicle is placed at the start position again
+		if (getNumberOfCurrentlyWhiteSensors() > 0)
+		{
+			startNextRun();
+		}
 		break;
 
 	case backward:
@@ -217,7 +203,8 @@ void drive()
 			direction = diversionChecking;
 			startFurtherDiversionCheckingTime();
 		}
-		else if (isDeadEnd())
+		// dead end
+		else if (getNumberOfCurrentlyWhiteSensors() == sizeof(sensorPins))
 		{
 			direction = backward;
 			storeTurnToPath();
@@ -246,23 +233,24 @@ void turnOffAllLeds()
 	}
 }
 
-void onRestartButtonKlicked()
+void startNextRun()
 {
 	pathPositionInLaterRun = 0;
 	isFirstRun = false;
 	direction = forward;
 }
 
-bool isDeadEnd()
+unsigned char getNumberOfCurrentlyWhiteSensors()
 {
+	unsigned char currentlyWhiteSensors = 0;
 	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
-		if (sensorValues[i] > threshold)
+		if (sensorValues[i] < threshold)
 		{
-			return false;
+			currentlyWhiteSensors++;
 		}
 	}
-	return true;
+	return currentlyWhiteSensors;
 }
 
 void checkForNewLineOnSide(Direction side)
@@ -302,14 +290,14 @@ void decideWhatDirection()
 	else
 	{
 		// Check if there is a way up front
-		for (unsigned char i = 1; i < sizeof(sensorPins) - 1; i++)
+		if (getNumberOfCurrentlyWhiteSensors() < sizeof(sensorPins))
 		{
-			if (sensorValues[i] > threshold)
-			{
-				isEachDiversionOnCrossing[forward] = true;
-				break;
-			}
+			isEachDiversionOnCrossing[forward] = true;
 		}
+
+
+		// #############################################################################
+		// I don't get this shit
 
 		// check if the destination was reached
 		bool destinationWasReached = true;
@@ -321,9 +309,21 @@ void decideWhatDirection()
 			}
 		}
 
-		// Stop if destination was reached
-		// Else go left preferably
-		if (destinationWasReached)
+
+		// stop if end of track was found
+		// else go left preferably
+
+
+
+		// if (getNumberOfCurrentlyWhiteSensors == 0)
+
+
+
+		if(destinationWasReached)
+
+
+		// #############################################################################
+
 		{
 			printPath();
 			direction = none;
@@ -356,7 +356,7 @@ void decideWhatDirection()
 
 void storeTurnToPath()
 {
-	Serial.println(direction);
+	//Serial.println(direction);
 	path[pathLength] = direction;
 	pathLength++;
 	//simplifyMaze();
@@ -435,7 +435,7 @@ void printSensorValues()
 	}
 
 	Serial.print(" linePosition: ");
-	Serial.println((int)position - 2500);
+	Serial.println(position - 2500);
 }
 
 void printPath()
