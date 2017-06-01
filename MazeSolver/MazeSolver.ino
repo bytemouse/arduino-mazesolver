@@ -15,14 +15,14 @@ const int threshold = 400;
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
-const int maxMotorSpeed = 150;
+const int maxMotorSpeed = 250;
 
 unsigned char path[300];
 
 unsigned int pathLength;
 unsigned int pathPositionInLaterRun;
 
-int pastDiversionTurnDelayMs = 300;
+int pastDiversionTurnDelayMs = 200;
 
 QTRSensorsAnalog qtra(sensorPins, sizeof(sensorPins), 4, 2);
 unsigned int sensorValues[sizeof(sensorPins)];
@@ -34,7 +34,7 @@ int lastError;
 
 bool isEachDiversionOnCrossing[3];
 
-long diversionCheckingStartTime;
+unsigned long diversionCheckingStartTime;
 bool isDiversionCheckRunning;
 
 bool isFirstRun = true;
@@ -72,7 +72,7 @@ void calibrate()
 	lightLed(3);
 
 	// make half-turns to have values for black and white without holding it
-	for (int i = 0; i <= 100; i++)
+	for (unsigned char i = 0; i <= 100; i++)
 	{
 		if (i == 0 || i == 60)
 		{
@@ -95,7 +95,7 @@ void calibrate()
 	moveBothMotors(0, forward, 0, forward);
 
 	// print the calibration minimum values measured when emitters were on
-	for (int i = 0; i < sizeof(sensorPins); i++)
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
 		Serial.print(qtra.calibratedMinimumOn[i]);
 		Serial.print(' ');
@@ -103,7 +103,7 @@ void calibrate()
 	Serial.println();
 
 	// print the calibration maximum values measured when emitters were on
-	for (int i = 0; i < sizeof(sensorPins); i++)
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
 		Serial.print(qtra.calibratedMaximumOn[i]);
 		Serial.print(' ');
@@ -289,47 +289,19 @@ void decideWhatDirection()
 	}
 	else
 	{
-		// Check if there is a way up front
-		if (getNumberOfCurrentlyWhiteSensors() < sizeof(sensorPins))
-		{
-			isEachDiversionOnCrossing[forward] = true;
-		}
-
-
-		// #############################################################################
-		// I don't get this shit
-
-		// check if the destination was reached
-		bool destinationWasReached = true;
-		for (int i = 0; i < sizeof(sensorPins); i++)
-		{
-			if (sensorValues[i] < threshold)
-			{
-				destinationWasReached = false;
-			}
-		}
-
-
-		// stop if end of track was found
-		// else go left preferably
-
-
-
-		// if (getNumberOfCurrentlyWhiteSensors == 0)
-
-
-
-		if(destinationWasReached)
-
-
-		// #############################################################################
-
+		if (getNumberOfCurrentlyWhiteSensors() == 0)
 		{
 			printPath();
 			direction = none;
 		}
 		else
 		{
+			// Check if there is a way up front
+			if (getNumberOfCurrentlyWhiteSensors() < sizeof(sensorPins))
+			{
+				isEachDiversionOnCrossing[forward] = true;
+			}
+
 			if (isEachDiversionOnCrossing[left])
 			{
 				direction = left;
@@ -356,7 +328,7 @@ void decideWhatDirection()
 
 void storeTurnToPath()
 {
-	//Serial.println(direction);
+	Serial.println(direction);
 	path[pathLength] = direction;
 	pathLength++;
 	//simplifyMaze();
