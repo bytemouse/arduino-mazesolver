@@ -407,7 +407,7 @@ void printSensorValues()
 	}
 
 	Serial.print(" linePosition: ");
-	Serial.println(position - 2500);
+	Serial.println((int)position - 2500);
 }
 
 void printPath()
