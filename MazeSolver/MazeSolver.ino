@@ -1,14 +1,15 @@
 #include "Motor.h"
 #include <QTRSensors.h>
 #include "Direction.h"
+#include <SoftwareSerial.h>
 
 #pragma region "Pin declarations"
 const unsigned char ledPins[] = { 4, 5, 6, 7 };
 unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
-const unsigned char bluetoothRxPin = 7;
-const unsigned char bluetoothTxPin = 10;
+SoftwareSerial bluetooth(7, 10); // RX, TX
 #pragma endregion
 
+#pragma region "Variable declarations"
 const int threshold = 400;
 
 // pd loop constants
@@ -39,6 +40,9 @@ bool isDiversionCheckRunning;
 
 bool isFirstRun = true;
 
+char myChar; // probably bad name and bad data type	
+#pragma endregion
+
 
 #pragma region "Initialization"
 void setup()
@@ -54,6 +58,10 @@ void setup()
 	}
 
 	Serial.begin(9600);
+	Serial.println("Native serial port initialized");
+	bluetooth.begin(9600); // may need to change 9600 to another value
+	bluetooth.println("Software serial port initialized");
+
 
 	delay(500);
 
@@ -116,18 +124,15 @@ void calibrate()
 
 void loop()
 {
-	// stop driving when 1 is received over serial port
-	// and restart when 2 is received
-	switch (Serial.read())
-	{
-	case '1':
-		direction = none;
-		break;
-	case '2':
-		direction = forward;
-		break;
+	while (bluetooth.available()) {
+		myChar = bluetooth.read();
+		Serial.print(myChar);
 	}
 
+	while (Serial.available()) {
+		myChar = Serial.read();
+		bluetooth.print(myChar);
+	}
 	drive();
 }
 
@@ -168,6 +173,7 @@ void drive()
 		// restart when vehicle is placed at the start position again
 		if (getNumberOfCurrentlyWhiteSensors() > 0)
 		{
+			delay(1000);
 			startNextRun();
 		}
 		break;
@@ -328,7 +334,7 @@ void decideWhatDirection()
 
 void storeTurnToPath()
 {
-	Serial.println(direction);
+	bluetooth.println(direction);
 	path[pathLength] = direction;
 	pathLength++;
 	//simplifyMaze();
@@ -398,6 +404,7 @@ void simplifyMaze()
 
 #pragma endregion
 
+#pragma region "Diagnostics"
 void printSensorValues()
 {
 	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
@@ -419,3 +426,4 @@ void printPath()
 	}
 	Serial.println("+++++++++++++++++");
 }
+#pragma endregion
