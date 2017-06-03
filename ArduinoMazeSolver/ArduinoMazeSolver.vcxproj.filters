@@ -24,8 +24,11 @@
     <ClInclude Include="Motor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.ArduinoMazeSolver.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MazeSolver.ino" />
+    <None Include="ArduinoMazeSolver.ino" />
   </ItemGroup>
 </Project>
