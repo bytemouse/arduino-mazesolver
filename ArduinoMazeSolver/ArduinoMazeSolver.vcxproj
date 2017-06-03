@@ -83,7 +83,6 @@
     <ClInclude Include="Direction.h" />
     <ClInclude Include="Motor.h" />
     <ClInclude Include="__vm\.ArduinoMazeSolver.vsarduino.h" />
-    <ClInclude Include="__vm\.MazeSolver.vsarduino.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
