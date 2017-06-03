@@ -158,15 +158,13 @@ void drive()
 	switch (direction)
 	{
 	case diversionChecking:
-		lightLed(1);
+		ledDirection(diversionChecking);
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, forward);
 		checkForDiversions();
 		break;
 
 	case none:
-		lightLed(0);
-		lightLed(3);
 
 		moveBothMotors(0, forward, 0, forward);
 
@@ -179,22 +177,21 @@ void drive()
 		break;
 
 	case backward:
-		lightLed(2);
-		lightLed(3);
+		ledDirection(backward);
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
 		break;
 
 	case left:
-		lightLed(2);
+		ledDirection(left);
 
 		moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
 		checkForNewLineOnSide(left);
 		break;
 
 	case forward:
-		lightLed(0);
+		ledDirection(forward);
 
 		posPropotionalToMid = position - 2500;
 
@@ -218,7 +215,7 @@ void drive()
 		break;
 
 	case right:
-		lightLed(3);
+		ledDirection(right);
 
 		moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
 		checkForNewLineOnSide(right);
@@ -226,18 +223,6 @@ void drive()
 	}
 }
 
-void lightLed(unsigned char ledIndex)
-{
-	digitalWrite(ledPins[ledIndex], HIGH);
-}
-
-void turnOffAllLeds()
-{
-	for (unsigned char i = 0; i < sizeof(ledPins); i++)
-	{
-		digitalWrite(ledPins[i], LOW);
-	}
-}
 
 void startNextRun()
 {
@@ -297,8 +282,8 @@ void decideWhatDirection()
 	{
 		if (getNumberOfCurrentlyWhiteSensors() == 0)
 		{
-			printPath();
 			direction = none;
+			printPath();
 		}
 		else
 		{
@@ -404,6 +389,48 @@ void simplifyMaze()
 
 #pragma endregion
 
+#pragma region "Leds"
+void lightLed(unsigned char ledIndex)
+{
+	digitalWrite(ledPins[ledIndex], HIGH);
+}
+
+void turnOffAllLeds()
+{
+	for (unsigned char i = 0; i < sizeof(ledPins); i++)
+	{
+		digitalWrite(ledPins[i], LOW);
+	}
+}
+
+void ledDirection(unsigned char ledDir) 
+{
+	switch (ledDir)
+	{
+	case diversionChecking:
+		lightLed(1);
+		break;
+	case none:
+		lightLed(0);
+		lightLed(3);
+		break;
+	case backward:
+		lightLed(2);
+		lightLed(3);
+		break;
+	case left:
+		lightLed(2);
+		break;
+	case forward:
+		lightLed(0);
+		break;
+	case right:
+		lightLed(3);
+		break;
+	}
+}
+#pragma endregion
+
 #pragma region "Diagnostics"
 void printSensorValues()
 {
@@ -425,5 +452,18 @@ void printPath()
 		Serial.println(path[i]);
 	}
 	Serial.println("+++++++++++++++++");
+}
+
+void printPathLed()
+{
+	turnOffAllLeds();
+	moveBothMotors(0, forward, 0, forward);
+	for (unsigned int i = 0; i < pathLength; i++)
+	{
+		delay(500);
+		ledDirection(path[i]);
+		delay(1000);
+		turnOffAllLeds();
+	}
 }
 #pragma endregion
