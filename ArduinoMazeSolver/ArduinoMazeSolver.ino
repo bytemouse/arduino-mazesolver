@@ -18,17 +18,17 @@ const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 250;
 
-unsigned char path[300];
+Direction path[300];
 
 unsigned int pathLength;
 unsigned int pathPositionInLaterRun;
 
-int pastDiversionTurnDelayMs = 200;
+int pastDiversionTurnDelayMs = 150;
 
 QTRSensorsAnalog qtra(sensorPins, sizeof(sensorPins), 4, 2);
 unsigned int sensorValues[sizeof(sensorPins)];
 
-unsigned char direction = forward;
+Direction direction = forward;
 
 unsigned int position;
 int lastError;
@@ -40,7 +40,7 @@ bool isDiversionCheckRunning;
 
 bool isFirstRun = true;
 
-char myChar; // probably bad name and bad data type	
+char myChar;
 #pragma endregion
 
 
@@ -84,12 +84,12 @@ void calibrate()
 	{
 		if (i == 0 || i == 60)
 		{
-			moveBothMotors(maxMotorSpeed, backward, maxMotorSpeed, forward);
+			moveBothMotors(150, backward, 150, forward);
 		}
 
 		else if (i == 20 || i == 100)
 		{
-			moveBothMotors(maxMotorSpeed, forward, maxMotorSpeed, backward);
+			moveBothMotors(150, forward, 150, backward);
 		}
 
 		qtra.calibrate();
@@ -133,6 +133,7 @@ void loop()
 		myChar = Serial.read();
 		bluetooth.print(myChar);
 	}
+
 	drive();
 }
 
@@ -142,6 +143,11 @@ void drive()
 {
 	// update position and sensorValues
 	position = qtra.readLine(sensorValues);
+
+	if (direction == none && !isFirstRun)
+	{
+		exit(0);
+	}
 
 	// if the time for the last step before turn is over
 	if (direction == diversionChecking
@@ -223,14 +229,6 @@ void drive()
 	}
 }
 
-
-void startNextRun()
-{
-	pathPositionInLaterRun = 0;
-	isFirstRun = false;
-	direction = forward;
-}
-
 unsigned char getNumberOfCurrentlyWhiteSensors()
 {
 	unsigned char currentlyWhiteSensors = 0;
@@ -271,6 +269,14 @@ void checkForDiversions()
 	}
 }
 
+void startNextRun()
+{
+	path[pathLength + 1] = none;
+	pathPositionInLaterRun = 0;
+	isFirstRun = false;
+	direction = forward;
+}
+
 void decideWhatDirection()
 {
 	if (!isFirstRun)
@@ -308,13 +314,14 @@ void decideWhatDirection()
 
 			storeTurnToPath();
 		}
-
-		// Reset for next crossing
-		for (unsigned char i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
-		{
-			isEachDiversionOnCrossing[i] = false;
-		}
 	}
+
+	// Reset for next crossing
+	for (unsigned char i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
+	{
+		isEachDiversionOnCrossing[i] = false;
+	}
+
 }
 
 void storeTurnToPath()
@@ -322,7 +329,7 @@ void storeTurnToPath()
 	bluetooth.println(direction);
 	path[pathLength] = direction;
 	pathLength++;
-	//simplifyMaze();
+	simplifyMaze();
 }
 
 void startFurtherDiversionCheckingTime()
@@ -403,7 +410,7 @@ void turnOffAllLeds()
 	}
 }
 
-void ledDirection(unsigned char ledDir) 
+void ledDirection(unsigned char ledDir)
 {
 	switch (ledDir)
 	{
