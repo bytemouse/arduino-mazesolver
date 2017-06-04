@@ -10,38 +10,38 @@ using Xamarin.Forms;
 
 namespace XamarinMazeSolvingApp
 {
-	public partial class MainPage : ContentPage
-	{
-        Path fullPath = new Path(new List<Direction>{
-            Direction.forward,
-            Direction.right,
-            Direction.forward,
-            Direction.left,
-            Direction.left,
-            Direction.forward,
-            Direction.backward,
-            Direction.left,
-            Direction.left,
-            Direction.backward,
-            Direction.right,
-            Direction.left,
-            Direction.left,
-            Direction.right,
-            Direction.right,
-            Direction.backward,
-            Direction.left,
-            Direction.left,
-            Direction.forward,
-            Direction.right,
-            Direction.left,
-            Direction.left,
-            Direction.left
-    });
+    public partial class MainPage : ContentPage
+    {
+        Path fullPath = new Path(new List<Turn>{
+            new Turn(Direction.forward,   500),
+            new Turn(Direction.right,     500),
+            new Turn(Direction.forward,   500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.forward,   500),
+            new Turn(Direction.backward,  500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.backward,  500),
+            new Turn(Direction.right,     500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.right,     500),
+            new Turn(Direction.right,     500),
+            new Turn(Direction.backward,  500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.forward,   500),
+            new Turn(Direction.right,     500),
+            new Turn(Direction.left,      500),
+            new Turn(Direction.left,     1500),
+            new Turn(Direction.left,      500)
+        });
 
-    public MainPage()
-		{
-			InitializeComponent();
-		}
+        public MainPage()
+        {
+            InitializeComponent();
+        }
 
         private void OnPainting(object sender, SKPaintSurfaceEventArgs paintSurface)
         {
