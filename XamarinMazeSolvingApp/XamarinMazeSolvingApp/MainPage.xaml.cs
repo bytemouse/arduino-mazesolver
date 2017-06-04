@@ -11,24 +11,43 @@ namespace XamarinMazeSolvingApp
 {
 	public partial class MainPage : ContentPage
 	{
-		public MainPage()
+        Path fullPath = new Path(new List<Direction>{
+            Direction.forward,
+            Direction.right,
+            Direction.forward,
+            Direction.left,
+            Direction.left,
+            Direction.forward,
+            Direction.backward,
+            Direction.left,
+            Direction.left,
+            Direction.backward,
+            Direction.right,
+            Direction.left,
+            Direction.left,
+            Direction.right,
+            Direction.right,
+            Direction.backward,
+            Direction.left,
+            Direction.left,
+            Direction.forward,
+            Direction.right,
+            Direction.left,
+            Direction.left,
+            Direction.left
+    });
+
+    public MainPage()
 		{
 			InitializeComponent();
 		}
 
-        private void OnPainting(object sender, SKPaintSurfaceEventArgs paíntSurface)
+        private void OnPainting(object sender, SKPaintSurfaceEventArgs paintSurface)
         {
-            paíntSurface.Surface.Canvas.Clear();
-            PathDrawer.DrawPath(paíntSurface, Path.fullPath, SKColors.Black);
+            paintSurface.Surface.Canvas.Clear();
+            fullPath.Draw(paintSurface, SKColors.Black);
 
-            var simplifiedPath = new List<Direction>();
-            foreach (Direction turn in Path.fullPath)
-            {
-                simplifiedPath.Add(turn);
-                simplifiedPath = PathSimplifier.SimplifyMaze(simplifiedPath);
-            }
-
-            PathDrawer.DrawPath(paíntSurface, simplifiedPath, SKColors.AliceBlue);
+            fullPath.GetSimplifiedPath().Draw(paintSurface, SKColors.Green);
         }
     }
 }
