@@ -277,7 +277,7 @@ void startNextRun()
 	path[pathLength + 1] = none;
 	pathPositionInLaterRun = 0;
 	isFirstRun = false;
-	if (path[pathPositionInLaterRun] == (unsigned char)3)
+	if (path[pathPositionInLaterRun] == backward)
 	{
 		direction = backward;
 		pathPositionInLaterRun++;
