@@ -4,7 +4,7 @@
 
 void moveMotorOnSide(Direction side, Direction orientation, int speed)
 {
-	speed = max(min(speed, 180), 0);
+	speed = max(min(speed, 255), 0);
 
 	digitalWrite(side == left ? 13 : 12, orientation == forward ? HIGH : LOW);
 	analogWrite(side == left ? 3 : 11, speed);
