@@ -134,6 +134,11 @@ void loop()
 		bluetooth.print(myChar);
 	}
 
+	if (myChar == 9)
+	{
+		shutDown();
+	}
+
 	drive();
 }
 
@@ -143,13 +148,6 @@ void drive()
 {
 	// update position and sensorValues
 	position = qtra.readLine(sensorValues);
-
-	if (pathPositionInLaterRun > pathLength && !isFirstRun)
-	{
-		turnOffAllLeds();
-		moveBothMotors(0, forward, 0, forward);
-		exit(0);
-	}
 
 	// if the time for the last step before turn is over
 	if (direction == diversionChecking
@@ -277,7 +275,7 @@ void startNextRun()
 	path[pathLength + 1] = none;
 	pathPositionInLaterRun = 0;
 	isFirstRun = false;
-	if (path[pathPositionInLaterRun] == (unsigned char)3)
+	if (path[pathPositionInLaterRun] == backward)
 	{
 		direction = backward;
 		pathPositionInLaterRun++;
@@ -486,3 +484,10 @@ void printPathLed()
 	}
 }
 #pragma endregion
+
+void shutDown() 
+{
+	turnOffAllLeds();
+	moveBothMotors(0, forward, 0, forward);
+	exit(0);
+}
