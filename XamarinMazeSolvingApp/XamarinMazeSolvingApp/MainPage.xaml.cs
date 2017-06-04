@@ -2,6 +2,7 @@
 using SkiaSharp.Views.Forms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,8 +46,8 @@ namespace XamarinMazeSolvingApp
         private void OnPainting(object sender, SKPaintSurfaceEventArgs paintSurface)
         {
             paintSurface.Surface.Canvas.Clear();
-            fullPath.Draw(paintSurface, SKColors.Black);
 
+            fullPath.Draw(paintSurface, SKColors.Black);
             fullPath.GetSimplifiedPath().Draw(paintSurface, SKColors.Green);
         }
     }

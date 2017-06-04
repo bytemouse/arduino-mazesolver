@@ -21,12 +21,13 @@ namespace XamarinMazeSolvingApp
             var tempPath = new List<Direction>();
             tempPath.AddRange(path);
 
-            for (int i = 0; i < tempPath.Count; i++)
+            for (int i = 2; i < tempPath.Count; i++)
             {
-                if (i < 3 || tempPath[i - 2] != Direction.backward)
+                if (tempPath[i - 2] != Direction.backward)
                 {
-                    break;
+                    continue;
                 }
+
 
                 int totalAngle = 0;
 
@@ -68,8 +69,11 @@ namespace XamarinMazeSolvingApp
 
                 // The path is now two steps shorter.
                 tempPath.RemoveAt(i - 1);
-                tempPath.RemoveAt(i - 1);
+                tempPath.RemoveAt(i - 2);
+
+                i -= 2;
             }
+            
             return new Path(new List<Direction>(tempPath));
         }
 
