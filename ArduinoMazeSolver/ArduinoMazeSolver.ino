@@ -18,7 +18,7 @@ const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 250;
 
-Direction path[300];
+unsigned char path[300];
 
 unsigned int pathLength;
 unsigned int pathPositionInLaterRun;
@@ -28,7 +28,7 @@ int pastDiversionTurnDelayMs = 150;
 QTRSensorsAnalog qtra(sensorPins, sizeof(sensorPins), 4, 2);
 unsigned int sensorValues[sizeof(sensorPins)];
 
-Direction direction = forward;
+unsigned char direction = forward;
 
 unsigned int position;
 int lastError;
@@ -144,8 +144,10 @@ void drive()
 	// update position and sensorValues
 	position = qtra.readLine(sensorValues);
 
-	if (direction == none && !isFirstRun)
+	if (pathPositionInLaterRun > pathLength && !isFirstRun)
 	{
+		turnOffAllLeds();
+		moveBothMotors(0, forward, 0, forward);
 		exit(0);
 	}
 
@@ -271,10 +273,20 @@ void checkForDiversions()
 
 void startNextRun()
 {
+	printPathLed();
 	path[pathLength + 1] = none;
 	pathPositionInLaterRun = 0;
 	isFirstRun = false;
-	direction = forward;
+	if (path[pathPositionInLaterRun] == (unsigned char)3)
+	{
+		direction = backward;
+		pathPositionInLaterRun++;
+	}
+	else
+	{
+		direction = forward;
+	}
+	
 }
 
 void decideWhatDirection()
