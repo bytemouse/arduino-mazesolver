@@ -18,7 +18,7 @@ const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 250;
 
-unsigned char path[300];
+Direction path[300];
 
 unsigned int pathLength;
 unsigned int pathPositionInLaterRun;
@@ -28,7 +28,7 @@ int pastDiversionTurnDelayMs = 150;
 QTRSensorsAnalog qtra(sensorPins, sizeof(sensorPins), 4, 2);
 unsigned int sensorValues[sizeof(sensorPins)];
 
-unsigned char direction = forward;
+Direction direction = forward;
 
 unsigned int position;
 int lastError;

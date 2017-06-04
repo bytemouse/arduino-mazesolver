@@ -1,6 +1,6 @@
 #pragma once
 
-enum Direction
+enum Direction : unsigned char
 {
 	left,
 	right,
