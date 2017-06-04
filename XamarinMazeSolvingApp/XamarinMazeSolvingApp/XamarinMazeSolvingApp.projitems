@@ -17,8 +17,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Path.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PathDrawer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PathSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Turn.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)MainPage.xaml">

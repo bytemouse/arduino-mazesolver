@@ -70,11 +70,12 @@ typedef void *__builtin_va_list;
 #undef PSTR
 #define PSTR(string_literal) ((const PROGMEM char *)(string_literal))
 
-#define pgm_read_byte(address_short) void()
-#define pgm_read_word(address_short) void()
-#define pgm_read_dword(address_short) void()
-#define pgm_read_float(address_short) void()
-#define pgm_read_ptr(address_short)   void()
+
+#define pgm_read_byte(address_short) uint8_t() 
+#define pgm_read_word(address_short) uint16_t() 
+#define pgm_read_dword(address_short) uint32_t()
+#define pgm_read_float(address_short) float()
+#define pgm_read_ptr(address_short)   short()
 
 #include "ArduinoMazeSolver.ino"
 #endif
