@@ -1,5 +1,6 @@
 package eu.janrebe.mazesolver;
 
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -8,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,5 +74,10 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public void startBluetoothActivity(View v) {
+        Intent intent = new Intent(this, BluetoothActivity.class);
+        startActivity(intent);
     }
 }
