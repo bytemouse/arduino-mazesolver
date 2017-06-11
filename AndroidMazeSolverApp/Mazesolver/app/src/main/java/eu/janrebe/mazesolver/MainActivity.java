@@ -17,7 +17,7 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
 
     // @formatter:off
-    MazePath fullPath = new MazePath(new ArrayList<Turn>(Arrays.asList(
+    MazePath fullPath = new MazePath(new ArrayList<>(Arrays.asList(
             new Turn(Direction.forward,   500),
             new Turn(Direction.right,     500),
             new Turn(Direction.forward,   500),

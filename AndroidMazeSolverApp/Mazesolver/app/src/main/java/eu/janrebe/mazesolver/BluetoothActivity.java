@@ -1,93 +1,141 @@
 package eu.janrebe.mazesolver;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
+import android.bluetooth.*;
 import android.bluetooth.le.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
-import android.os.ParcelUuid;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.UUID;
 
 public class BluetoothActivity extends AppCompatActivity {
 
-    final static String MAZESOLVER_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    private final static String TAG = BluetoothActivity.class.getSimpleName();
 
-    BluetoothAdapter bluetoothAdapter;
-    BluetoothLeScanner ble;
+    private final static UUID SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
+    private final static UUID CHARACTERISTIC_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
+    private final static String VEHICLE_MAC_ADRESS = "50:F1:4A:50:A8:09";
+
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothLeScanner bleScanner;
+
+    private BluetoothGatt vehicleGatt;
+    private BluetoothGattService vehicleService;
+
+    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
 
+        textView = (TextView) findViewById(R.id.textView);
 
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
         bluetoothAdapter = bluetoothManager.getAdapter();
-        ble = bluetoothAdapter.getBluetoothLeScanner();
+        bleScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         searchForDevices();
+
+        textView.setText("Searching for device...");
     }
 
 
-    void searchForDevices() {
+    private void searchForDevices() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, RESULT_CANCELED);
         }
 
-        Log.d("TAHG", "OAKok");
-
-        int REQUEST_ENABLE_BT = 0;
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            startActivityForResult(enableBtIntent, 0);
         }
 
         final ScanFilter scanFilter = new ScanFilter.Builder()
-//                .setServiceUuid(ParcelUuid.fromString(MAZESOLVER_UUID))
+                .setDeviceAddress(VEHICLE_MAC_ADRESS)
                 .build();
 
         final ScanSettings scanSettings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
 
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                ble.startScan(Collections.singletonList(scanFilter), scanSettings, scanCallback);
-            }
-        });
-
+        bleScanner.startScan(Collections.singletonList(scanFilter), scanSettings, scanCallback);
     }
 
-    ScanCallback scanCallback = new ScanCallback() {
+    private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
+            bleScanner.stopScan(scanCallback);
 
-            Log.d("TAG", result.getDevice().getName() + "; UUIDs: " + result.getScanRecord().getServiceUuids().toString());
-        }
+            BluetoothDevice vehicle = result.getDevice();
 
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
+            vehicleGatt = vehicle.connectGatt(BluetoothActivity.this, true, connectedCallback);
+            vehicleGatt.connect();
 
-            Log.d("TAG", "BatchResults");
+
+            setTextViewText("Connecting to device...", false);
         }
 
         @Override
         public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-            Log.d("TAG", "Scan failed");
+            setTextViewText("Scan failed with error code " + errorCode, false);
         }
     };
+
+
+    private BluetoothGattCallback connectedCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    gatt.discoverServices();
+
+                    setTextViewText("Connected", false);
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    setTextViewText("disconnected", false);
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            for (BluetoothGattService service : gatt.getServices()) {
+                if (service.getUuid().equals(SERVICE_UUID)) {
+                    vehicleService = service;
+                }
+            }
+            BluetoothGattCharacteristic vehicleCharacteristic = vehicleService.getCharacteristic(CHARACTERISTIC_UUID);
+
+            vehicleGatt.setCharacteristicNotification(vehicleCharacteristic, true);
+            setTextViewText("listening to notifications started", false);
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            setTextViewText("new state: " + characteristic.getStringValue(0), true);
+        }
+    };
+
+    private void setTextViewText(final String string, final boolean append) {
+        textView.post(new Runnable() {
+            @Override
+            public void run() {
+                if (append) {
+                    textView.append(string + "\n");
+                } else {
+                    textView.setText(string + "\n");
+                }
+            }
+        });
+    }
 }

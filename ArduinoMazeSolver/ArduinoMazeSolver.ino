@@ -6,17 +6,17 @@
 #pragma region "Pin declarations"
 const unsigned char ledPins[] = { 4, 5, 6, 7 };
 unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
-SoftwareSerial bluetooth(7, 10); // RX, TX
+SoftwareSerial bluetooth(7, 10);
 #pragma endregion
 
-#pragma region "Variable declarations"
+#pragma region "Constant declarations"
 const int threshold = 400;
 
 // pd loop constants
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
-const int maxMotorSpeed = 250;
+const int maxMotorSpeed = 255;
 
 Direction path[300];
 
@@ -124,17 +124,19 @@ void calibrate()
 
 void loop()
 {
-	while (bluetooth.available()) {
+	while (bluetooth.available())
+	{
 		myChar = bluetooth.read();
 		Serial.print(myChar);
 	}
 
-	while (Serial.available()) {
+	while (Serial.available())
+	{
 		myChar = Serial.read();
 		bluetooth.print(myChar);
 	}
 
-	if (myChar == 9)
+	if (myChar == 's')
 	{
 		shutDown();
 	}
@@ -271,7 +273,7 @@ void checkForDiversions()
 
 void startNextRun()
 {
-	printPathLed();
+	//printPathLed();
 	path[pathLength + 1] = none;
 	pathPositionInLaterRun = 0;
 	isFirstRun = false;
@@ -284,7 +286,6 @@ void startNextRun()
 	{
 		direction = forward;
 	}
-	
 }
 
 void decideWhatDirection()
@@ -485,7 +486,7 @@ void printPathLed()
 }
 #pragma endregion
 
-void shutDown() 
+void shutDown()
 {
 	turnOffAllLeds();
 	moveBothMotors(0, forward, 0, forward);
