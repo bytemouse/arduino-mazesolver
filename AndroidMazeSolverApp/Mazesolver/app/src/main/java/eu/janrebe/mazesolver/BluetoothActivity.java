@@ -30,6 +30,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
     private BluetoothGatt vehicleGatt;
     private BluetoothGattService vehicleService;
+    BluetoothGattCharacteristic vehicleCharacteristic;
 
     TextView textView;
 
@@ -93,7 +94,7 @@ public class BluetoothActivity extends AppCompatActivity {
     };
 
 
-    private BluetoothGattCallback connectedCallback = new BluetoothGattCallback() {
+    protected BluetoothGattCallback connectedCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             switch (newState) {
@@ -114,7 +115,7 @@ public class BluetoothActivity extends AppCompatActivity {
                     vehicleService = service;
                 }
             }
-            BluetoothGattCharacteristic vehicleCharacteristic = vehicleService.getCharacteristic(CHARACTERISTIC_UUID);
+            vehicleCharacteristic = vehicleService.getCharacteristic(CHARACTERISTIC_UUID);
 
             vehicleGatt.setCharacteristicNotification(vehicleCharacteristic, true);
             setTextViewText("listening to notifications started", false);
@@ -123,6 +124,7 @@ public class BluetoothActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             setTextViewText("new state: " + characteristic.getStringValue(0), true);
+            sendToVehicle(255);
         }
     };
 
@@ -137,5 +139,10 @@ public class BluetoothActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    void sendToVehicle(int value) {
+        vehicleCharacteristic.setValue(new byte[]{(byte) value});
+        vehicleGatt.writeCharacteristic(vehicleCharacteristic);
     }
 }
