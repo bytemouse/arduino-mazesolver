@@ -10,11 +10,12 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class BluetoothActivity extends AppCompatActivity {
@@ -93,6 +94,7 @@ public class BluetoothActivity extends AppCompatActivity {
         }
     };
 
+    int receiveIndex;
 
     protected BluetoothGattCallback connectedCallback = new BluetoothGattCallback() {
         @Override
@@ -123,8 +125,23 @@ public class BluetoothActivity extends AppCompatActivity {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            setTextViewText("new state: " + characteristic.getStringValue(0), true);
-            sendToVehicle(255);
+            setTextViewText("new state nr " + receiveIndex + ": " + Arrays.toString(characteristic.getValue()), true);
+            sendToVehicle(BluetoothByte.OK.byteValue);
+            receiveIndex++;
+
+            List<Turn> turns = new ArrayList<>();
+            List<Byte> lastReceivedTurnBytes = new ArrayList<>();
+
+
+            // TODO make this work
+            byte[] bytes = characteristic.getValue();
+            for (byte receivedByte : bytes) {
+                for (BluetoothByte enumByte : BluetoothByte.values()) {
+                    if (receivedByte == enumByte.byteValue) {
+                        lastReceivedTurnBytes.add(receivedByte);
+                    }
+                }
+            }
         }
     };
 

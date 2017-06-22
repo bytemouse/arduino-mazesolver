@@ -1,10 +1,10 @@
 package eu.janrebe.mazesolver;
 
 public enum Direction {
-    forward(0),
-    right(90),
-    backward(180),
-    left(270);
+    FORWARD(0),
+    RIGHT(90),
+    BACKWARD(180),
+    LEFT(270);
 
     public int degrees;
 

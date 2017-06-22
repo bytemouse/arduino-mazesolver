@@ -1,7 +1,6 @@
 package eu.janrebe.mazesolver;
 
 import android.graphics.*;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,7 @@ public class MazePath {
         }
 
         for (int i = 2; i < tempPath.size(); i++) {
-            if (tempPath.get(i - 2).direction != Direction.backward) {
+            if (tempPath.get(i - 2).direction != Direction.BACKWARD) {
                 continue;
             }
 
@@ -28,13 +27,13 @@ public class MazePath {
 
             for (int j = 1; j <= 3; j++) {
                 switch (tempPath.get(i - j).direction) {
-                    case right:
+                    case RIGHT:
                         totalAngle += 90;
                         break;
-                    case left:
+                    case LEFT:
                         totalAngle += 270;
                         break;
-                    case backward:
+                    case BACKWARD:
                         totalAngle += 180;
                         break;
                 }
@@ -46,16 +45,16 @@ public class MazePath {
             // Replace all of those turns with a single one.
             switch (totalAngle) {
                 case 0:
-                    tempPath.get(i - 3).direction = Direction.forward;
+                    tempPath.get(i - 3).direction = Direction.FORWARD;
                     break;
                 case 90:
-                    tempPath.get(i - 3).direction = Direction.right;
+                    tempPath.get(i - 3).direction = Direction.RIGHT;
                     break;
                 case 180:
-                    tempPath.get(i - 3).direction = Direction.backward;
+                    tempPath.get(i - 3).direction = Direction.BACKWARD;
                     break;
                 case 270:
-                    tempPath.get(i - 3).direction = Direction.left;
+                    tempPath.get(i - 3).direction = Direction.LEFT;
                     break;
             }
 
@@ -71,7 +70,7 @@ public class MazePath {
 
     //https://forums.xamarin.com/discussion/77883/skiasharp-graphics-basics
     public void draw(Canvas canvas, int color, boolean isTransformMatrixSet, Matrix transformMatrix) {
-        Direction currentDirection = Direction.right;
+        Direction currentDirection = Direction.RIGHT;
 
         Point posPixel = new Point();
 
@@ -85,16 +84,16 @@ public class MazePath {
             int time = turn.timeMillis;
 
             switch (currentDirection) {
-                case left:
+                case LEFT:
                     posPixel.x -= time;
                     break;
-                case forward:
+                case FORWARD:
                     posPixel.y -= time;
                     break;
-                case right:
+                case RIGHT:
                     posPixel.x += time;
                     break;
-                case backward:
+                case BACKWARD:
                     posPixel.y += time;
                     break;
             }

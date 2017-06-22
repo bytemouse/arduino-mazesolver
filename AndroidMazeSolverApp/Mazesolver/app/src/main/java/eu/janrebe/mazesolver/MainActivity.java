@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -18,29 +17,29 @@ public class MainActivity extends AppCompatActivity {
 
     // @formatter:off
     MazePath fullPath = new MazePath(new ArrayList<>(Arrays.asList(
-            new Turn(Direction.forward,   500),
-            new Turn(Direction.right,     500),
-            new Turn(Direction.forward,   500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.forward,   500),
-            new Turn(Direction.backward,  500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.backward,  500),
-            new Turn(Direction.right,     500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.right,     500),
-            new Turn(Direction.right,     500),
-            new Turn(Direction.backward,  500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.forward,   500),
-            new Turn(Direction.right,     500),
-            new Turn(Direction.left,      500),
-            new Turn(Direction.left,      800),
-            new Turn(Direction.left,      500)
+            new Turn(Direction.FORWARD,   500),
+            new Turn(Direction.RIGHT,     500),
+            new Turn(Direction.FORWARD,   500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.FORWARD,   500),
+            new Turn(Direction.BACKWARD,  500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.BACKWARD,  500),
+            new Turn(Direction.RIGHT,     500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.RIGHT,     500),
+            new Turn(Direction.RIGHT,     500),
+            new Turn(Direction.BACKWARD,  500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.FORWARD,   500),
+            new Turn(Direction.RIGHT,     500),
+            new Turn(Direction.LEFT,      500),
+            new Turn(Direction.LEFT,      800),
+            new Turn(Direction.LEFT,      500)
     )));
     // @formatter:on
 
