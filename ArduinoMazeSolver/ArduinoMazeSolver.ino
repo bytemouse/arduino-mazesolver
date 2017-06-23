@@ -2,6 +2,7 @@
 #include <QTRSensors.h>
 #include "Direction.h"
 #include <SoftwareSerial.h>
+#include "ProtocolBytes.h"
 
 #pragma region "Pin declarations"
 const unsigned char ledPins[] = { 4, 5, 6, 7 };
@@ -21,6 +22,7 @@ const int maxMotorSpeed = 255;
 Direction path[300];
 
 unsigned int pathLength;
+unsigned int fullPathLength;
 unsigned int pathPositionInLaterRun;
 
 int pastDiversionTurnDelayMs = 150;
@@ -40,6 +42,7 @@ bool isDiversionCheckRunning;
 
 bool isFirstRun = true;
 
+unsigned long lastTurnMs;
 char myChar;
 #pragma endregion
 
@@ -118,6 +121,7 @@ void calibrate()
 	}
 
 	delay(300);
+  lastTurnMs = millis();
 }
 
 #pragma endregion
@@ -135,11 +139,7 @@ void loop()
 		myChar = Serial.read();
 		bluetooth.print(myChar);
 	}
-
-	if (myChar == 's')
-	{
-		shutDown();
-	}
+  
 
 	drive();
 }
@@ -337,9 +337,38 @@ void decideWhatDirection()
 
 void storeTurnToPath()
 {
-	bluetooth.println(direction);
+  unsigned char byteDirection;
+  
+  switch(direction)
+  {
+     case left:
+      byteDirection = byteLeft;
+      break;
+
+     case forward:
+      byteDirection = byteForward;
+      break;
+      
+     case right:
+      byteDirection = byteRight;
+      break;
+      
+     case backward:
+      byteDirection = byteBackward;
+  }
+  
+  unsigned char bytesTurn[] = 
+  {
+    byteStarting, 
+    fullPathLength, 
+    byteDirection, 
+    (unsigned char) (millis() - lastTurnMs / 50), 
+    byteFinished
+  };
+	bluetooth.write(bytesTurn, sizeof(bytesTurn));
 	path[pathLength] = direction;
 	pathLength++;
+  fullPathLength++;
 	simplifyMaze();
 }
 
