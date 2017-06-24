@@ -6,16 +6,22 @@ import android.bluetooth.le.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 public class BluetoothActivity extends AppCompatActivity {
@@ -33,14 +39,36 @@ public class BluetoothActivity extends AppCompatActivity {
     private BluetoothGattService vehicleService;
     BluetoothGattCharacteristic vehicleCharacteristic;
 
-    TextView textView;
+    TextView textViewContent;
+    TextView textViewState;
+
+    SurfaceView surfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
 
-        textView = (TextView) findViewById(R.id.textView);
+        surfaceView = findViewById(R.id.surfaceView2);
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                surfaceView.setWillNotDraw(false);
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                draw(holder);
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+
+            }
+        });
+
+        textViewContent = findViewById(R.id.textViewContent);
+        textViewState = findViewById(R.id.textViewState);
 
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
@@ -49,7 +77,21 @@ public class BluetoothActivity extends AppCompatActivity {
 
         searchForDevices();
 
-        textView.setText("Searching for device...");
+        setStateText(ConnectionState.SEARCHING);
+    }
+
+    void draw(SurfaceHolder holder) {
+        Log.i("TAG", "draw");
+            Canvas canvas = holder.lockCanvas();
+
+            canvas.drawColor(Color.WHITE);
+
+            Matrix matrix = new Matrix();
+            mazePath.draw(canvas, Color.BLACK, false, matrix);
+            mazePath.getSimplifiedPath().draw(canvas, Color.GREEN, true, matrix);
+
+            holder.unlockCanvasAndPost(canvas);
+
     }
 
 
@@ -85,7 +127,7 @@ public class BluetoothActivity extends AppCompatActivity {
             vehicleGatt.connect();
 
 
-            setTextViewText("Connecting to device...", false);
+            setStateText(ConnectionState.CONNECTING);
         }
 
         @Override
@@ -96,6 +138,8 @@ public class BluetoothActivity extends AppCompatActivity {
 
     int receiveIndex;
 
+    MazePath mazePath = new MazePath();
+
     protected BluetoothGattCallback connectedCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -103,10 +147,11 @@ public class BluetoothActivity extends AppCompatActivity {
                 case BluetoothProfile.STATE_CONNECTED:
                     gatt.discoverServices();
 
-                    setTextViewText("Connected", false);
+                    setStateText(ConnectionState.CONNECTED_NOT_LISTENING);
                     break;
                 case BluetoothProfile.STATE_DISCONNECTED:
-                    setTextViewText("disconnected", false);
+                    setStateText(ConnectionState.DISCONNECTED);
+                    break;
             }
         }
 
@@ -120,46 +165,80 @@ public class BluetoothActivity extends AppCompatActivity {
             vehicleCharacteristic = vehicleService.getCharacteristic(CHARACTERISTIC_UUID);
 
             vehicleGatt.setCharacteristicNotification(vehicleCharacteristic, true);
-            setTextViewText("listening to notifications started", false);
+            setStateText(ConnectionState.CONNECTED_LISTENING);
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            setTextViewText("new state nr " + receiveIndex + ": " + Arrays.toString(characteristic.getValue()), true);
+            int[] receivedUnsignedBytes = getUnsigned(characteristic.getValue());
+
+            setTextViewText("new state nr " + receiveIndex + ": " + Arrays.toString(receivedUnsignedBytes), true);
             sendToVehicle(BluetoothByte.OK.byteValue);
             receiveIndex++;
 
-            List<Turn> turns = new ArrayList<>();
-            List<Byte> lastReceivedTurnBytes = new ArrayList<>();
+            Turn turn = new Turn(Direction.getFromUnsignedByte(receivedUnsignedBytes[2]), receivedUnsignedBytes[3] * 50);
 
+            mazePath.addTurn(turn);
 
-            // TODO make this work
-            byte[] bytes = characteristic.getValue();
-            for (byte receivedByte : bytes) {
-                for (BluetoothByte enumByte : BluetoothByte.values()) {
-                    if (receivedByte == enumByte.byteValue) {
-                        lastReceivedTurnBytes.add(receivedByte);
-                    }
-                }
-            }
+            surfaceView.postInvalidate();
+
+            setTextViewText(turn.toString(), true);
         }
     };
 
     private void setTextViewText(final String string, final boolean append) {
-        textView.post(new Runnable() {
+        textViewContent.post(new Runnable() {
             @Override
             public void run() {
                 if (append) {
-                    textView.append(string + "\n");
+                    textViewContent.append(string + "\n");
                 } else {
-                    textView.setText(string + "\n");
+                    textViewContent.setText(string + "\n");
                 }
             }
         });
     }
 
+    public static int getUnsigned(byte b) {
+        return b & 0xFF;
+    }
+
+    public static int[] getUnsigned(byte[] bytes) {
+        int[] tmpBytes = new int[bytes.length];
+
+        for (int i = 0; i < bytes.length; i++) {
+            tmpBytes[i] = getUnsigned(bytes[i]);
+        }
+        return tmpBytes;
+    }
+
+
     void sendToVehicle(int value) {
-        vehicleCharacteristic.setValue(new byte[]{(byte) value});
-        vehicleGatt.writeCharacteristic(vehicleCharacteristic);
+        if (state == ConnectionState.CONNECTED_LISTENING) {
+            vehicleCharacteristic.setValue(new byte[]{(byte) value});
+            vehicleGatt.writeCharacteristic(vehicleCharacteristic);
+        } else {
+            Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void sendStart(View view) {
+        sendToVehicle(BluetoothByte.START_DRIVING_REQUEST.byteValue);
+    }
+
+    public void sendStop(View view) {
+        sendToVehicle(BluetoothByte.STOP_DRIVING_REQUEST.byteValue);
+    }
+
+    ConnectionState state;
+    void setStateText(final ConnectionState state) {
+        this.state = state;
+        textViewState.post(new Runnable() {
+            @Override
+            public void run() {
+                textViewState.setTextColor(state.color);
+                textViewState.setText(state.toString());
+            }
+        });
     }
 }

@@ -10,4 +10,8 @@ public class Turn {
         this.timeMillis = timeMillis;
     }
 
+    @Override
+    public String toString() {
+        return "Turn: direction: " + direction.toString() + ", time: " + timeMillis;
+    }
 }

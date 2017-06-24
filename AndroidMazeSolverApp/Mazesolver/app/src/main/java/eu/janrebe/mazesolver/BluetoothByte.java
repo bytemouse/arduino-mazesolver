@@ -2,24 +2,27 @@ package eu.janrebe.mazesolver;
 
 public enum BluetoothByte {
     // @formatter:off
-    STARTING((byte) 255),
-    LEFT((byte)     250,    Direction.LEFT),
-    FORWARD((byte)  251,    Direction.FORWARD),
-    RIGHT((byte)    252,    Direction.RIGHT),
-    BACKWARD((byte) 253,    Direction.BACKWARD),
-    FINISHED((byte) 254),
-    OK((byte)       249);
+    STARTING(              255),
+    LEFT(                  250,    Direction.LEFT),
+    FORWARD(               251,    Direction.FORWARD),
+    RIGHT(                 252,    Direction.RIGHT),
+    BACKWARD(              253,    Direction.BACKWARD),
+    FINISHED(              254),
+    OK(                    249),
+    START_DRIVING_REQUEST( 247),
+    STOP_DRIVING_REQUEST(  248);
+
     // @formatter:on
     
-    byte byteValue;
+    int byteValue;
     Direction direction;
 
-    BluetoothByte(byte byteValue, Direction direction) {
+    BluetoothByte(int byteValue, Direction direction) {
         this.byteValue = byteValue;
         this.direction = direction;
     }
 
-    BluetoothByte(byte byteValue) {
+    BluetoothByte(int byteValue) {
         this.byteValue = byteValue;
     }
 }

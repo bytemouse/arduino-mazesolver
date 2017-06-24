@@ -1,9 +1,11 @@
 #pragma once
 
-const unsigned char byteStarting = 255;
-const unsigned char byteLeft = 250;
-const unsigned char byteForward = 251;
-const unsigned char byteRight = 252;
-const unsigned char byteBackward = 253;
-const unsigned char byteFinished = 254;
-const unsigned char byteResponse = 249;
+const byte byteStarting = 255;
+const byte byteLeft = 250;
+const byte byteForward = 251;
+const byte byteRight = 252;
+const byte byteBackward = 253;
+const byte byteFinished = 254;
+const byte byteResponse = 249;
+const byte byteRequestStartDriving = 247;
+const byte byteRequestStopDriving = 248;

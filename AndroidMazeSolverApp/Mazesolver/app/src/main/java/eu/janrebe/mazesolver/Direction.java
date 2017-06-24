@@ -25,4 +25,13 @@ public enum Direction {
         }
         return null;
     }
+
+    public static Direction getFromUnsignedByte(int byteValue) {
+        for (BluetoothByte bluetoothByte : BluetoothByte.values()) {
+            if (bluetoothByte.byteValue == byteValue) {
+                return bluetoothByte.direction;
+            }
+        }
+        return null;
+    }
 }

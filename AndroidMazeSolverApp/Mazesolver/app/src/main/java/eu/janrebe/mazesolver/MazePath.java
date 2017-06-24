@@ -6,10 +6,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MazePath {
-    List<Turn> path;
+    private List<Turn> path;
 
+    public MazePath() {
+        path = new ArrayList<>();
+    }
     public MazePath(List<Turn> path) {
         this.path = path;
+    }
+
+    void addTurn(Turn turn) {
+        path.add(turn);
+    }
+
+    int size() {
+        return path.size();
     }
 
     public MazePath getSimplifiedPath() {
@@ -70,7 +81,7 @@ public class MazePath {
 
     //https://forums.xamarin.com/discussion/77883/skiasharp-graphics-basics
     public void draw(Canvas canvas, int color, boolean isTransformMatrixSet, Matrix transformMatrix) {
-        Direction currentDirection = Direction.RIGHT;
+        Direction currentDirection = Direction.FORWARD;
 
         Point posPixel = new Point();
 

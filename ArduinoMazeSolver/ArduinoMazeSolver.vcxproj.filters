@@ -24,6 +24,9 @@
     <ClInclude Include="__vm\.ArduinoMazeSolver.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ProtocolBytes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ArduinoMazeSolver.ino" />
