@@ -9,23 +9,7 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="@dimen/activity_vertical_margin"
-        tools:context="eu.janrebe.mazesolver.BluetoothActivity">
-
-    <SurfaceView
-        android:id="@+id/surfaceView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/textViewContent"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="28dp"/>
-
-    <TextView
-        android:id="@+id/textViewContent"
-        android:layout_width="match_parent"
-        android:layout_height="323dp"
-        android:text="l"
-        android:layout_below="@+id/buttonStart"
-        android:layout_alignParentStart="true"/>
+        tools:context="eu.janrebe.mazesolver.MazeActivity">
 
     <Button
         android:id="@+id/buttonStart"
@@ -34,6 +18,7 @@
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@+id/buttonStop"
         android:onClick="sendStop"
+        android:scrollbars="vertical"
         android:text="@string/stop"/>
 
     <Button
@@ -45,14 +30,39 @@
         android:onClick="sendStart"
         android:text="@string/start"/>
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_above="@+id/mazeView"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="28dp"
+        android:scrollbars="horizontal">
+
+        <TextView
+            android:id="@+id/textViewContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/mazeView"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="32dp"
+            android:layout_weight="0.08"/>
+    </ScrollView>
+
     <TextView
         android:id="@+id/textViewState"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonStart"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@+id/buttonStart"
-        android:text="TextView"
-        android:layout_above="@+id/textViewContent"/>
+        android:text="TextView"/>
+
+    <eu.janrebe.mazesolver.MazeView
+        android:id="@+id/mazeView"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"/>
 
 </RelativeLayout>

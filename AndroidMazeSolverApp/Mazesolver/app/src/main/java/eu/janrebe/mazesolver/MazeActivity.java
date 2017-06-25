@@ -6,17 +6,13 @@ import android.bluetooth.le.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,9 +20,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
-public class BluetoothActivity extends AppCompatActivity {
+public class MazeActivity extends AppCompatActivity {
 
-    private final static String TAG = BluetoothActivity.class.getSimpleName();
+    private final static String TAG = MazeActivity.class.getSimpleName();
 
     private final static UUID SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
     private final static UUID CHARACTERISTIC_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
@@ -42,33 +38,16 @@ public class BluetoothActivity extends AppCompatActivity {
     TextView textViewContent;
     TextView textViewState;
 
-    SurfaceView surfaceView;
+    MazeView mazeView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_bluetooth);
+        setContentView(R.layout.activity_maze);
 
-        surfaceView = findViewById(R.id.surfaceView2);
-        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                surfaceView.setWillNotDraw(false);
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                draw(holder);
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-
-            }
-        });
-
-        textViewContent = findViewById(R.id.textViewContent);
+        mazeView = findViewById(R.id.mazeView);
         textViewState = findViewById(R.id.textViewState);
+        textViewContent = findViewById(R.id.textViewContent);
 
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
@@ -78,20 +57,6 @@ public class BluetoothActivity extends AppCompatActivity {
         searchForDevices();
 
         setStateText(ConnectionState.SEARCHING);
-    }
-
-    void draw(SurfaceHolder holder) {
-        Log.i("TAG", "draw");
-            Canvas canvas = holder.lockCanvas();
-
-            canvas.drawColor(Color.WHITE);
-
-            Matrix matrix = new Matrix();
-            mazePath.draw(canvas, Color.BLACK, false, matrix);
-            mazePath.getSimplifiedPath().draw(canvas, Color.GREEN, true, matrix);
-
-            holder.unlockCanvasAndPost(canvas);
-
     }
 
 
@@ -123,7 +88,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
             BluetoothDevice vehicle = result.getDevice();
 
-            vehicleGatt = vehicle.connectGatt(BluetoothActivity.this, true, connectedCallback);
+            vehicleGatt = vehicle.connectGatt(MazeActivity.this, true, connectedCallback);
             vehicleGatt.connect();
 
 
@@ -137,8 +102,6 @@ public class BluetoothActivity extends AppCompatActivity {
     };
 
     int receiveIndex;
-
-    MazePath mazePath = new MazePath();
 
     protected BluetoothGattCallback connectedCallback = new BluetoothGattCallback() {
         @Override
@@ -172,15 +135,14 @@ public class BluetoothActivity extends AppCompatActivity {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             int[] receivedUnsignedBytes = getUnsigned(characteristic.getValue());
 
-            setTextViewText("new state nr " + receiveIndex + ": " + Arrays.toString(receivedUnsignedBytes), true);
+            setTextViewText("received new byte array nr " + receiveIndex + " : " + Arrays.toString(receivedUnsignedBytes), true);
             sendToVehicle(BluetoothByte.OK.byteValue);
             receiveIndex++;
 
             Turn turn = new Turn(Direction.getFromUnsignedByte(receivedUnsignedBytes[2]), receivedUnsignedBytes[3] * 50);
 
-            mazePath.addTurn(turn);
-
-            surfaceView.postInvalidate();
+            mazeView.mazePath.addTurn(turn);
+            mazeView.postInvalidate();
 
             setTextViewText(turn.toString(), true);
         }
@@ -195,8 +157,13 @@ public class BluetoothActivity extends AppCompatActivity {
                 } else {
                     textViewContent.setText(string + "\n");
                 }
+
+                ScrollView scrollView = (ScrollView)textViewContent.getParent();
+                scrollView.smoothScrollTo(0, textViewContent.getBottom());
             }
         });
+
+        Log.i(TAG, string);
     }
 
     public static int getUnsigned(byte b) {
@@ -231,6 +198,7 @@ public class BluetoothActivity extends AppCompatActivity {
     }
 
     ConnectionState state;
+
     void setStateText(final ConnectionState state) {
         this.state = state;
         textViewState.post(new Runnable() {
@@ -240,5 +208,7 @@ public class BluetoothActivity extends AppCompatActivity {
                 textViewState.setText(state.toString());
             }
         });
+
+        Log.i(TAG, state.toString());
     }
 }
