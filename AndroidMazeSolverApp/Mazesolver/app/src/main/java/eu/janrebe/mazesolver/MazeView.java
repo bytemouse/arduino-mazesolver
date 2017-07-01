@@ -32,8 +32,4 @@ public class MazeView extends View {
         mazePath.draw(canvas, Color.BLACK, false, matrix);
         mazePath.getSimplifiedPath().draw(canvas, Color.GREEN, true, matrix);
     }
-
-    private int rand(int bot, int top) {
-        return ThreadLocalRandom.current().nextInt(bot, top);
-    }
 }

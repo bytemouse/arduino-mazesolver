@@ -136,7 +136,7 @@ public class MazeActivity extends AppCompatActivity {
             int[] receivedUnsignedBytes = getUnsigned(characteristic.getValue());
 
             setTextViewText("received new byte array nr " + receiveIndex + " : " + Arrays.toString(receivedUnsignedBytes), true);
-            sendToVehicle(BluetoothByte.OK.byteValue);
+            sendToVehicle(new byte[]{(byte) BluetoothByte.OK.byteValue, (byte) receivedUnsignedBytes[1]});
             receiveIndex++;
 
             Turn turn = new Turn(Direction.getFromUnsignedByte(receivedUnsignedBytes[2]), receivedUnsignedBytes[3] * 50);
@@ -158,7 +158,7 @@ public class MazeActivity extends AppCompatActivity {
                     textViewContent.setText(string + "\n");
                 }
 
-                ScrollView scrollView = (ScrollView)textViewContent.getParent();
+                ScrollView scrollView = (ScrollView) textViewContent.getParent();
                 scrollView.smoothScrollTo(0, textViewContent.getBottom());
             }
         });
@@ -179,10 +179,13 @@ public class MazeActivity extends AppCompatActivity {
         return tmpBytes;
     }
 
-
     void sendToVehicle(int value) {
+        sendToVehicle(new byte[]{(byte) value});
+    }
+
+    void sendToVehicle(byte[] value) {
         if (state == ConnectionState.CONNECTED_LISTENING) {
-            vehicleCharacteristic.setValue(new byte[]{(byte) value});
+            vehicleCharacteristic.setValue(value);
             vehicleGatt.writeCharacteristic(vehicleCharacteristic);
         } else {
             Toast.makeText(this, "not connected", Toast.LENGTH_SHORT).show();

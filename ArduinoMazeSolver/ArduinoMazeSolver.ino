@@ -3,6 +3,7 @@
 #include "Direction.h"
 #include <SoftwareSerial.h>
 #include "ProtocolBytes.h"
+#include "Turn.h"
 
 #pragma region "Pin declarations"
 const byte ledPins[] = { 4, 5, 6, 7 };
@@ -10,16 +11,19 @@ byte sensorPins[] = { 0, 1, 2, 3, 4, 5 };
 SoftwareSerial bluetoothSerial(7, 10);
 #pragma endregion
 
-#pragma region "Constant declarations"
+#pragma region "Variable declarations"
 const int threshold = 400;
 
 // pd loop constants
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
-const byte maxMotorSpeed = 255;
+const byte maxMotorSpeed = 200;
 
 Direction path[300];
+
+Turn fullPath[247];
+Turn simplePath[247];
 
 byte pathLength;
 byte fullPathLength;
@@ -45,6 +49,10 @@ bool isFirstRun = true;
 unsigned long lastTurnMs;
 
 bool isNotPausing = true;
+
+unsigned long lastBluetoothSendTryMs;
+bool lastBluetoothPacketReceived;
+
 #pragma endregion
 
 
@@ -128,27 +136,26 @@ void calibrate()
 
 void loop()
 {
-	char myChar;
+	byte btReceivedByte;
 
 	while (bluetoothSerial.available())
 	{
-		myChar = bluetoothSerial.read();
-		Serial.print(myChar);
-	}
+		btReceivedByte = bluetoothSerial.read();
 
-	while (Serial.available())
-	{
-		myChar = Serial.read();
-		bluetoothSerial.print(myChar);
-	}
+		switch (btReceivedByte)
+		{
+		case byteRequestStartDriving:
+			isNotPausing = true;
 
-	if (myChar == byteRequestStartDriving)
-	{
-		isNotPausing = true;
-	}
-	else if (myChar == byteRequestStopDriving)
-	{
-		isNotPausing = false;
+		case byteRequestStopDriving:
+			isNotPausing = false;
+
+		case byteResponse:
+			lastBluetoothPacketReceived = true;
+
+		default:
+			break;
+		}
 	}
 
 	if (isNotPausing)
