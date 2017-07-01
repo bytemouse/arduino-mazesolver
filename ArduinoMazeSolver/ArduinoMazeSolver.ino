@@ -6,8 +6,8 @@
 #include "Turn.h"
 
 #pragma region "Pin declarations"
-const byte ledPins[] = { 4, 5, 6, 7 };
-byte sensorPins[] = { 0, 1, 2, 3, 4, 5 };
+const unsigned char ledPins[] = { 4, 5, 6, 7 };
+unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
 SoftwareSerial bluetoothSerial(7, 10);
 #pragma endregion
 
@@ -18,16 +18,14 @@ const int threshold = 400;
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
-const byte maxMotorSpeed = 200;
-
-Direction path[300];
+const unsigned char maxMotorSpeed = 200;
 
 Turn fullPath[247];
 Turn simplePath[247];
 
-byte pathLength;
-byte fullPathLength;
-byte pathPositionInLaterRun;
+unsigned char pathLength;
+unsigned char fullPathLength;
+unsigned char pathPositionInLaterRun;
 
 int pastDiversionTurnDelayMs = 150;
 
@@ -64,7 +62,7 @@ void setup()
 	pinMode(13, OUTPUT);
 
 	//init LEDs
-	for (byte i = 0; i < sizeof(ledPins); i++)
+	for (unsigned char i = 0; i < sizeof(ledPins); i++)
 	{
 		pinMode(ledPins[i], OUTPUT);
 	}
@@ -92,7 +90,7 @@ void calibrate()
 	lightLed(3);
 
 	// make half-turns to have values for black and white without holding it
-	for (byte i = 0; i <= 100; i++)
+	for (unsigned char i = 0; i <= 100; i++)
 	{
 		if (i == 0 || i == 60)
 		{
@@ -115,7 +113,7 @@ void calibrate()
 	moveBothMotors(0, forward, 0, forward);
 
 	// print the calibration minimum values measured when emitters were on
-	for (byte i = 0; i < sizeof(sensorPins); i++)
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
 		Serial.print(qtra.calibratedMinimumOn[i]);
 		Serial.print(' ');
@@ -123,7 +121,7 @@ void calibrate()
 	Serial.println();
 
 	// print the calibration maximum values measured when emitters were on
-	for (byte i = 0; i < sizeof(sensorPins); i++)
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
 		Serial.print(qtra.calibratedMaximumOn[i]);
 		Serial.print(' ');
@@ -136,7 +134,7 @@ void calibrate()
 
 void loop()
 {
-	byte btReceivedByte;
+	unsigned char btReceivedByte;
 
 	while (bluetoothSerial.available())
 	{
@@ -255,10 +253,10 @@ void drive()
 	}
 }
 
-byte getNumberOfCurrentlyWhiteSensors()
+unsigned char getNumberOfCurrentlyWhiteSensors()
 {
-	byte currentlyWhiteSensors = 0;
-	for (byte i = 0; i < sizeof(sensorPins); i++)
+	unsigned char currentlyWhiteSensors = 0;
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
 		if (sensorValues[i] < threshold)
 		{
@@ -298,10 +296,12 @@ void checkForDiversions()
 void startNextRun()
 {
 	//printPathLed();
-	path[pathLength + 1] = none;
+	fullPath[pathLength + 1].direction = none;
+	simplePath[pathLength + 1].direction = none;
+
 	pathPositionInLaterRun = 0;
 	isFirstRun = false;
-	if (path[pathPositionInLaterRun] == backward)
+	if (simplePath[pathPositionInLaterRun].direction == backward)
 	{
 		direction = backward;
 		pathPositionInLaterRun++;
@@ -316,7 +316,7 @@ void decideWhatDirection()
 {
 	if (!isFirstRun)
 	{
-		direction = path[pathPositionInLaterRun];
+		direction = simplePath[pathPositionInLaterRun].direction;
 		pathPositionInLaterRun++;
 	}
 	else
@@ -352,7 +352,7 @@ void decideWhatDirection()
 	}
 
 	// Reset for next crossing
-	for (byte i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
+	for (unsigned char i = 0; i < sizeof(isEachDiversionOnCrossing); i++)
 	{
 		isEachDiversionOnCrossing[i] = false;
 	}
@@ -361,30 +361,33 @@ void decideWhatDirection()
 
 void storeTurnToPath()
 {
-	byte byteDirection = getDirectionByte(direction);
+	unsigned char byteDirection = getDirectionByte(direction);
 
-	byte bytesTurn[] =
+	unsigned char bytesTurn[] =
 	{
 	   byteStarting,
 	   fullPathLength,
 	   byteDirection,
 
 	   // send with a precision of 50 ms
-	   (byte)((millis() - lastTurnMs) / 50),
+	   (unsigned char)((millis() - lastTurnMs) / 50),
 
 	   byteFinished
 	};
 
 	lastTurnMs = millis();
 	bluetoothSerial.write(bytesTurn, sizeof(bytesTurn));
-	path[pathLength] = direction;
+
+	fullPath[pathLength].direction = direction;
+	simplePath[pathLength].direction = direction;
+
 	pathLength++;
 	fullPathLength++;
 	simplifyMaze();
 
 }
 
-byte getDirectionByte(Direction dir)
+unsigned char getDirectionByte(Direction dir)
 {
 	switch (dir)
 	{
@@ -419,16 +422,16 @@ void startFurtherDiversionCheckingTime()
 // LBL = S
 void simplifyMaze()
 {
-	if (pathLength < 3 || path[pathLength - 2] != backward)
+	if (pathLength < 3 || simplePath[pathLength - 2].direction != backward)
 	{
 		return;
 	}
 
 	int totalAngle = 0;
 
-	for (byte i = 1; i <= 3; i++)
+	for (unsigned char i = 1; i <= 3; i++)
 	{
-		switch (path[pathLength - i])
+		switch (simplePath[pathLength - i].direction)
 		{
 		case right:
 			totalAngle += 90;
@@ -451,42 +454,42 @@ void simplifyMaze()
 	switch (totalAngle)
 	{
 	case 0:
-		path[pathLength - 3] = forward;
+		simplePath[pathLength - 3].direction = forward;
 		break;
 	case 90:
-		path[pathLength - 3] = right;
+		simplePath[pathLength - 3].direction = right;
 		break;
 	case 180:
-		path[pathLength - 3] = backward;
+		simplePath[pathLength - 3].direction = backward;
 		break;
 	case 270:
-		path[pathLength - 3] = left;
+		simplePath[pathLength - 3].direction = left;
 		break;
 	}
 
 	// The path is now two steps shorter.
-	path[pathLength - 1] = none;
-	path[pathLength - 2] = none;
+	simplePath[pathLength - 1].direction = none;
+	simplePath[pathLength - 2].direction = none;
 	pathLength -= 2;
 }
 
 #pragma endregion
 
 #pragma region "Leds"
-void lightLed(byte ledIndex)
+void lightLed(unsigned char ledIndex)
 {
 	digitalWrite(ledPins[ledIndex], HIGH);
 }
 
 void turnOffAllLeds()
 {
-	for (byte i = 0; i < sizeof(ledPins); i++)
+	for (unsigned char i = 0; i < sizeof(ledPins); i++)
 	{
 		digitalWrite(ledPins[i], LOW);
 	}
 }
 
-void ledDirection(byte ledDir)
+void ledDirection(unsigned char ledDir)
 {
 	switch (ledDir)
 	{
@@ -517,7 +520,7 @@ void ledDirection(byte ledDir)
 #pragma region "Diagnostics"
 void printSensorValues()
 {
-	for (byte i = 0; i < sizeof(sensorPins); i++)
+	for (unsigned char i = 0; i < sizeof(sensorPins); i++)
 	{
 		Serial.print(sensorValues[i]);
 		Serial.print('\t');
@@ -530,9 +533,9 @@ void printSensorValues()
 void printPath()
 {
 	Serial.println("+++++++++++++++++");
-	for (byte i = 0; i < pathLength; i++)
+	for (unsigned char i = 0; i < pathLength; i++)
 	{
-		Serial.println(path[i]);
+		Serial.println(fullPath[i].direction);
 	}
 	Serial.println("+++++++++++++++++");
 }
@@ -541,10 +544,10 @@ void printPathLed()
 {
 	turnOffAllLeds();
 	moveBothMotors(0, forward, 0, forward);
-	for (byte i = 0; i < pathLength; i++)
+	for (unsigned char i = 0; i < pathLength; i++)
 	{
 		delay(500);
-		ledDirection(path[i]);
+		ledDirection(fullPath[i].direction);
 		delay(1000);
 		turnOffAllLeds();
 	}
