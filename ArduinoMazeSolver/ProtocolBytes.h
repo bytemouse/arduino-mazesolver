@@ -9,3 +9,4 @@ const byte byteFinished = 254;
 const byte byteResponse = 249;
 const byte byteRequestStartDriving = 247;
 const byte byteRequestStopDriving = 248;
+const byte byteRequestClearAndroidMaze = 246;

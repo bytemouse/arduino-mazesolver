@@ -49,8 +49,8 @@ public class MazePath {
         path.add(turn);
     }
 
-    int size() {
-        return path.size();
+    void clear() {
+        path.clear();
     }
 
     public MazePath getSimplifiedPath() {

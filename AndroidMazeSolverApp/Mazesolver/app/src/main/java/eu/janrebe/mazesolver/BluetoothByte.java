@@ -10,7 +10,8 @@ public enum BluetoothByte {
     FINISHED(              254),
     OK(                    249),
     START_DRIVING_REQUEST( 247),
-    STOP_DRIVING_REQUEST(  248);
+    STOP_DRIVING_REQUEST(  248),
+    CLEAR_MAZE_VIEW_REQUEST(246);
 
     // @formatter:on
     

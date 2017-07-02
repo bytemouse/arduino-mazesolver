@@ -135,6 +135,14 @@ public class MazeActivity extends AppCompatActivity {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             int[] receivedUnsignedBytes = getUnsigned(characteristic.getValue());
 
+            if (receivedUnsignedBytes.length == 1 && receivedUnsignedBytes[0] == BluetoothByte.CLEAR_MAZE_VIEW_REQUEST.byteValue) {
+                mazeView.mazePath.clear();
+                mazeView.postInvalidate();
+                return;
+            } else if (receivedUnsignedBytes.length != 5) {
+                return;
+            }
+
             setTextViewText("received new byte array nr " + receiveIndex + " : " + Arrays.toString(receivedUnsignedBytes), true);
             sendToVehicle(new byte[]{(byte) BluetoothByte.OK.byteValue, (byte) receivedUnsignedBytes[1]});
             receiveIndex++;
