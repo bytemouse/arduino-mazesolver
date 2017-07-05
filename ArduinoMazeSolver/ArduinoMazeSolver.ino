@@ -20,8 +20,8 @@ const float derivateConst = 1.0f;
 
 const int maxMotorSpeed = 255;
 
-Turn fullPath[100];
-Turn simplePath[100];
+Turn fullPath[150];
+Turn simplePath[150];
 
 byte pathLength;
 byte fullPathLength;
@@ -559,7 +559,7 @@ void sendAllTurns()
 	for(byte i=0; i<fullPathLength; i++)
 	{
 		sendTurn(fullPath[i]);
-		delay(1000);
+		delay(100);
 	}	
 }
 #pragma endregion
