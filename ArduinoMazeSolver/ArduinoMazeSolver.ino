@@ -18,10 +18,10 @@ const int threshold = 400;
 const float proportionalConst = 0.2f;
 const float derivateConst = 1.0f;
 
-const int maxMotorSpeed = 200;
+const int maxMotorSpeed = 255;
 
-Turn fullPath[246];
-Turn simplePath[246];
+Turn fullPath[100];
+Turn simplePath[100];
 
 byte pathLength;
 byte fullPathLength;
@@ -50,7 +50,6 @@ bool isNotPausing = false;
 
 unsigned long lastBluetoothSendTryMs;
 bool lastBluetoothPacketReceived;
-
 #pragma endregion
 
 
@@ -282,7 +281,6 @@ void checkForDiversions()
 void startNextRun()
 {
 	//printPathLed();
-	fullPath[pathLength + 1].direction = none;
 	simplePath[pathLength + 1].direction = none;
 
 	pathPositionInLaterRun = 0;
@@ -310,7 +308,7 @@ void decideWhatDirection()
 		if (getNumberOfCurrentlyWhiteSensors() == 0)
 		{
 			direction = none;
-			printPath();
+			sendAllTurns();
 		}
 		else
 		{
@@ -363,14 +361,31 @@ void storeTurnToPath()
 
 	lastTurnMs = millis();
 	bluetoothSerial.write(bytesTurn, sizeof(bytesTurn));
+	
+	fullPath[fullPathLength].indexOfTurns = bytesTurn[1];
+	fullPath[fullPathLength].time50ms = bytesTurn[3];
+	fullPath[fullPathLength].direction = direction;
 
-	fullPath[pathLength].direction = direction;
 	simplePath[pathLength].direction = direction;
 
 	pathLength++;
 	fullPathLength++;
 	simplifyMaze();
 
+}
+
+void sendTurn(Turn inputTurn)
+{
+	byte outputBytesTurn[] =
+	{
+	   byteStarting,
+	   inputTurn.indexOfTurns,
+	   getDirectionByte(inputTurn.direction),
+	   inputTurn.time50ms,
+	   byteFinished
+	};
+
+	bluetoothSerial.write(outputBytesTurn, sizeof(outputBytesTurn));
 }
 
 byte getDirectionByte(Direction dir)
@@ -535,6 +550,17 @@ void printPathLed()
 		delay(1000);
 		turnOffAllLeds();
 	}
+}
+
+void sendAllTurns()
+{	
+	moveBothMotors(0, forward, 0, forward);
+	bluetoothSerial.write(byteRequestClearAndroidMaze);
+	for(byte i=0; i<fullPathLength; i++)
+	{
+		sendTurn(fullPath[i]);
+		delay(1000);
+	}	
 }
 #pragma endregion
 
