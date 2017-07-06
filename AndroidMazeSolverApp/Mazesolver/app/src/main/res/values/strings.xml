@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">Mazesolver</string>
     <string name="title_activity_bluetooth">BluetoothActivity</string>
-    <string name="startBluetoothSearch">Start Bluetooth device search</string>
-    <string name="start">start</string>
-    <string name="stop">stop</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="searching">Searching</string>
+    <string name="connecting">Connecting</string>
+    <string name="connected_not_listening">Connected, not listening</string>
+    <string name="connected">Connected</string>
 </resources>

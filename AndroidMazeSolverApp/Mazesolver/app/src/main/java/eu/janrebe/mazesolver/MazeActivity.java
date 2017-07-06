@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Timer;
 import java.util.UUID;
 
 public class MazeActivity extends AppCompatActivity {
@@ -216,7 +217,7 @@ public class MazeActivity extends AppCompatActivity {
             @Override
             public void run() {
                 textViewState.setTextColor(state.color);
-                textViewState.setText(state.toString());
+                textViewState.setText(getResources().getString(state.stringIdentifier));
             }
         });
 

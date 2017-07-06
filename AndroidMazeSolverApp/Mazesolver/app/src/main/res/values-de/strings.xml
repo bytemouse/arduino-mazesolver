@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mazesolver</string>
+    <string name="start">Start</string>
+    <string name="disconnected">Nicht verbunden</string>
+    <string name="searching">Am suchen</string>
+    <string name="connecting">Am verbinden</string>
+    <string name="connected_not_listening">Verbunden ohne zuhören</string>
+    <string name="connected">Vebunden</string>
+    <string name="stop">Stop</string>
+</resources>

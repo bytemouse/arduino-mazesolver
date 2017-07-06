@@ -9,7 +9,7 @@ import java.util.List;
 public class MazePath {
 
     // @formatter:off
-    public static MazePath examplePath = new MazePath(new ArrayList<>(Arrays.asList(
+    public List<Turn> examplePath = new ArrayList<>(Arrays.asList(
             new Turn(Direction.FORWARD,   500),
             new Turn(Direction.RIGHT,     500),
             new Turn(Direction.FORWARD,   500),
@@ -33,7 +33,7 @@ public class MazePath {
             new Turn(Direction.LEFT,      500),
             new Turn(Direction.LEFT,      800),
             new Turn(Direction.LEFT,      500)
-    )));
+    ));
     // @formatter:on
 
     private List<Turn> path;
