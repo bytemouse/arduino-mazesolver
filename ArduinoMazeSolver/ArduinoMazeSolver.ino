@@ -1,40 +1,28 @@
-#include "Motor.h"
 #include <QTRSensors.h>
-#include "Direction.h"
 #include <SoftwareSerial.h>
+#include "Direction.h"
+#include "Motor.h"
 #include "ProtocolBytes.h"
 #include "Turn.h"
+#include "PinDeclarations.h"
+#include "ConstantDeclartions.h"
+#include "SensorDeclarations.h"
 
-#pragma region "Pin declarations"
-const byte ledPins[] = { 4, 5, 6, 8 };
-unsigned char sensorPins[] = { 0, 1, 2, 3, 4, 5 };
-SoftwareSerial bluetoothSerial(7, 10);
-#pragma endregion
-
-#pragma region "Variable declarations"
-const int threshold = 400;
-
-// pd loop constants
-const float proportionalConst = 0.2f;
-const float derivateConst = 1.0f;
-
-const int maxMotorSpeed = 255;
-
-Turn fullPath[150];
-Turn simplePath[150];
+Turn fullPath[150]; //stores the unsimplified path through the maze
+Turn simplePath[150]; //stores the simplified path through the maze
+Turn reversePath[150];
 
 byte pathLength;
 byte fullPathLength;
 byte pathPositionInLaterRun;
 
-int pastDiversionTurnDelayMs = 150;
 
-QTRSensorsAnalog qtra(sensorPins, sizeof(sensorPins), 4, 2);
-unsigned int sensorValues[sizeof(sensorPins)];
+bool reverse = false;
+
+int pastDiversionTurnDelayMs = 150; 
 
 Direction direction = forward;
 
-unsigned int sensorPosition;
 int lastError;
 
 bool isEachDiversionOnCrossing[3];
@@ -280,19 +268,30 @@ void checkForDiversions()
 
 void startNextRun()
 {
-	//printPathLed();
-	simplePath[pathLength + 1].direction = none;
-
-	pathPositionInLaterRun = 0;
-	isFirstRun = false;
-	if (simplePath[pathPositionInLaterRun].direction == backward)
+	if(reverse)
 	{
+		reversePath[pathLength + 1].direction = none;
+
+		pathPositionInLaterRun = 0;
+		isFirstRun = false;
 		direction = backward;
-		pathPositionInLaterRun++;
+
 	}
 	else
 	{
-		direction = forward;
+		simplePath[pathLength + 1].direction = none;
+
+		pathPositionInLaterRun = 0;
+		isFirstRun = false;
+		if (simplePath[pathPositionInLaterRun].direction == backward)
+		{
+			direction = backward;
+			pathPositionInLaterRun++;
+		}
+		else
+		{
+			direction = forward;
+		}
 	}
 }
 
@@ -300,8 +299,16 @@ void decideWhatDirection()
 {
 	if (!isFirstRun)
 	{
-		direction = simplePath[pathPositionInLaterRun].direction;
-		pathPositionInLaterRun++;
+		if(reverse)
+		{
+			direction = reversePath[pathPositionInLaterRun].direction;
+			pathPositionInLaterRun++;
+		}
+		else
+		{
+			direction = simplePath[pathPositionInLaterRun].direction;
+			pathPositionInLaterRun++;
+		}
 	}
 	else
 	{
@@ -413,6 +420,14 @@ byte getDirectionByte(Direction dir)
 void startFurtherDiversionCheckingTime()
 {
 	diversionCheckingStartTime = millis();
+}
+
+void reverseArray()
+{
+	for (byte i = pathLength; i >= 0; i--)
+	{
+		reversePath[pathLength - i] = simplePath[i]; 
+	}
 }
 
 // LBR = B
