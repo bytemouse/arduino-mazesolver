@@ -7,6 +7,7 @@
 #include "PinDeclarations.h"
 #include "ConstantDeclartions.h"
 #include "SensorDeclarations.h"
+#include "LED.h"
 
 Turn fullPath[150]; //stores the unsimplified path through the maze
 Turn simplePath[150]; //stores the simplified path through the maze
@@ -15,7 +16,6 @@ Turn reversePath[150];
 byte pathLength;
 byte fullPathLength;
 byte pathPositionInLaterRun;
-
 
 bool reverse = false;
 
@@ -426,8 +426,27 @@ void reverseArray()
 {
 	for (byte i = pathLength; i >= 0; i--)
 	{
-		reversePath[pathLength - i] = simplePath[i]; 
+		reversePath[pathLength - i].direction = reverseTurn(simplePath[i]); 
 	}
+}
+
+Direction reverseTurn(Turn inputTurn)
+{
+	switch (inputTurn.direction)
+	{
+	case left:
+		return right;
+		break;
+	case forward:
+		return forward;
+		break;
+	case right:
+		return left;
+		break;
+	default:
+		return none;
+		break;
+	}	
 }
 
 // LBR = B
@@ -489,48 +508,6 @@ void simplifyMaze()
 
 #pragma endregion
 
-#pragma region "Leds"
-void lightLed(byte ledIndex)
-{
-	digitalWrite(ledPins[ledIndex], HIGH);
-}
-
-void turnOffAllLeds()
-{
-	for (byte i = 0; i < sizeof(ledPins); i++)
-	{
-		digitalWrite(ledPins[i], LOW);
-	}
-}
-
-void ledDirection(byte ledDir)
-{
-	switch (ledDir)
-	{
-	case diversionChecking:
-		lightLed(1);
-		break;
-	case none:
-		lightLed(0);
-		lightLed(3);
-		break;
-	case backward:
-		lightLed(2);
-		lightLed(3);
-		break;
-	case left:
-		lightLed(2);
-		break;
-	case forward:
-		lightLed(0);
-		break;
-	case right:
-		lightLed(3);
-		break;
-	}
-}
-#pragma endregion
-
 #pragma region "Diagnostics"
 void printSensorValues()
 {
@@ -554,6 +531,17 @@ void printPath()
 	Serial.println("+++++++++++++++++");
 }
 
+void sendAllTurns()
+{	
+	moveBothMotors(0, forward, 0, forward);
+	bluetoothSerial.write(byteRequestClearAndroidMaze);
+	for(byte i=0; i<fullPathLength; i++)
+	{
+		sendTurn(fullPath[i]);
+		delay(100);
+	}	
+}
+
 void printPathLed()
 {
 	turnOffAllLeds();
@@ -565,17 +553,6 @@ void printPathLed()
 		delay(1000);
 		turnOffAllLeds();
 	}
-}
-
-void sendAllTurns()
-{	
-	moveBothMotors(0, forward, 0, forward);
-	bluetoothSerial.write(byteRequestClearAndroidMaze);
-	for(byte i=0; i<fullPathLength; i++)
-	{
-		sendTurn(fullPath[i]);
-		delay(100);
-	}	
 }
 #pragma endregion
 
